@@ -73,15 +73,15 @@ static void configure_led(void)
 static void blink_led(void)
 {
     /* Set the GPIO level according to the state (LOW or HIGH)*/
-    gpio_set_level(static_cast<gpio_num_t>(BLINK_GPIO), s_led_state);
+    gpio_set_level(BLINK_GPIO, s_led_state);
 }
 
 static void configure_led(void)
 {
     ESP_LOGI(TAG, "Example configured to blink GPIO LED!");
-    gpio_reset_pin(static_cast<gpio_num_t>(BLINK_GPIO));
+    gpio_reset_pin(BLINK_GPIO);
     /* Set the GPIO as a push/pull output */
-    gpio_set_direction(static_cast<gpio_num_t>(BLINK_GPIO), GPIO_MODE_OUTPUT);
+    gpio_set_direction(BLINK_GPIO, GPIO_MODE_OUTPUT);
 }
 
 #else

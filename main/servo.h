@@ -2,11 +2,8 @@
 #define SERVO_H
 
 #include <array>
+#include "sdkconfig.h"
 
-constexpr int SERVO_PULSE_GPIO_PITCH = 5;        // GPIO connects to the PWM signal line
-constexpr int SERVO_PULSE_GPIO_ROW = 2;        // GPIO connects to the PWM signal line
-constexpr int SERVO_PULSE_GPIO_YAW = 3;        // GPIO connects to the PWM signal line
-constexpr int SERVO_NUM = 3;
 
 #define LEDC_TIMER              LEDC_TIMER_0
 #define LEDC_MODE               LEDC_LOW_SPEED_MODE
@@ -19,16 +16,11 @@ enum ServoIdx : int {
     SERVO_IDX_YAW = 2,
 };
 
-std::array<int, SERVO_NUM> SERVO_PULSE_GPIOS = {
-    SERVO_PULSE_GPIO_PITCH,
-    SERVO_PULSE_GPIO_ROW,
-    SERVO_PULSE_GPIO_YAW
-};
 
 class ServoGroup
 {
 public:
-    ServoGroup(const std::array<int, SERVO_NUM> &gpios);
+    ServoGroup();
     void SetAngle(int servoIdx, float angle);
     void FiveTimesInterpolation(int servoIdx, float angleStart, float angleEnd, float duration);
 };

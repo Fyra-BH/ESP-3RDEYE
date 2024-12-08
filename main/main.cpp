@@ -4,6 +4,9 @@
  * SPDX-License-Identifier: CC0-1.0
  */
 
+#include <vector>
+#include <thread>
+#include <chrono>
 #include <stdio.h>
 #include <inttypes.h>
 #include "sdkconfig.h"
@@ -12,6 +15,12 @@
 #include "esp_chip_info.h"
 #include "esp_flash.h"
 #include "esp_system.h"
+#include "esp_log.h"
+
+#include "servo.h"
+#include "connect_wifi.h"
+
+static const char *TAG = "APP MAIN";
 
 
 void greeting(void)
@@ -50,5 +59,18 @@ extern void ServoDemo();
 extern "C" void app_main(void)
 {
     greeting();
-    ServoDemo();
+    ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
+    connect_wifi();
+    ServoGroup servoGroup;
+    std::vector<std::thread> threads;
+    threads.push_back(std::thread([&]{
+        while (true) {
+            servoGroup.FiveTimesInterpolation(SERVO_IDX_PITCH, 0, 180, 1.5);
+            servoGroup.FiveTimesInterpolation(SERVO_IDX_PITCH, 180, 0, 1.5);
+        }
+    }));
+
+    for (auto &tid : threads) {
+        tid.join();
+    }
 }

@@ -14,12 +14,20 @@
 
 static const char *TAG = "SERVO";
 
+constexpr int SERVO_NUM = 3;
+std::array<int, SERVO_NUM> SERVO_PULSE_GPIOS = {
+    CONFIG_SERVO_PULSE_GPIO_PITCH,
+    CONFIG_SERVO_PULSE_GPIO_ROLL,
+    CONFIG_SERVO_PULSE_GPIO_YAW
+};
 
-ServoGroup::ServoGroup(const std::array<int, SERVO_NUM> &gpio_array)
+ServoGroup::ServoGroup()
 {
     /*########################### PWM #################################*/
     // 对于ESP32C3，使用LEDC驱动PWM
     // Prepare and then apply the LEDC PWM timer configuration
+    const std::array<int, SERVO_NUM> &gpio_array=SERVO_PULSE_GPIOS;
+    
     ledc_timer_config_t ledc_timer;
 
     ledc_timer.speed_mode = LEDC_MODE;
@@ -80,15 +88,5 @@ void ServoGroup::FiveTimesInterpolation(int servoIdx, float angleStart, float an
         // 将插值角度设置到舵机
         SetAngle(servoIdx, theta);
         std::this_thread::sleep_for(std::chrono::microseconds(static_cast<int>(dt)));
-    }
-}
-
-void ServoDemo()
-{
-    ServoGroup servoGroup(SERVO_PULSE_GPIOS);
-    ESP_LOGI(TAG, "servo_task start");
-    while (1) {
-        servoGroup.FiveTimesInterpolation(SERVO_IDX_PITCH, 0, 180, 1);
-        servoGroup.FiveTimesInterpolation(SERVO_IDX_PITCH, 180, 0, 1);
     }
 }
