@@ -19,6 +19,7 @@
 
 #include "servo.h"
 #include "connect_wifi.h"
+#include "remote_proc.h"
 
 static const char *TAG = "APP MAIN";
 
@@ -54,8 +55,6 @@ void greeting(void)
 
 }
 
-extern void ServoDemo();
-
 extern "C" void app_main(void)
 {
     greeting();
@@ -69,6 +68,28 @@ extern "C" void app_main(void)
             servoGroup.FiveTimesInterpolation(SERVO_IDX_PITCH, 180, 0, 1.5);
         }
     }));
+
+    {
+        RemoteProc remoteProc(3333);
+        for (int i = 0; i < 2; i++)
+        {
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+            uint8_t dst_ip[4] = {192, 168, 31, 146};
+            std::initializer_list<std::string> data_to_send = {
+                "Hello",
+                "World",
+                "From",
+                "ESP32"
+            };
+            for (auto &data : data_to_send) {
+                remoteProc.SendBytes(data + "\n", dst_ip, 3333);
+                std::this_thread::sleep_for(std::chrono::milliseconds(500));
+            }
+        }
+        uint8_t dst_ip[4] = {192, 168, 31, 255};
+        remoteProc.SendBytes("Broadcast Message", dst_ip, 3333);
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    }
 
     for (auto &tid : threads) {
         tid.join();
