@@ -69,27 +69,8 @@ extern "C" void app_main(void)
         }
     }));
 
-    {
-        RemoteProc remoteProc(3333);
-        for (int i = 0; i < 2; i++)
-        {
-            std::this_thread::sleep_for(std::chrono::seconds(1));
-            uint8_t dst_ip[4] = {192, 168, 31, 146};
-            std::initializer_list<std::string> data_to_send = {
-                "Hello",
-                "World",
-                "From",
-                "ESP32"
-            };
-            for (auto &data : data_to_send) {
-                remoteProc.SendBytes(data + "\n", dst_ip, 3333);
-                std::this_thread::sleep_for(std::chrono::milliseconds(500));
-            }
-        }
-        uint8_t dst_ip[4] = {192, 168, 31, 255};
-        remoteProc.SendBytes("Broadcast Message", dst_ip, 3333);
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    }
+    RemoteProc remoteProc(8888);
+    remoteProc.StartListening();
 
     for (auto &tid : threads) {
         tid.join();

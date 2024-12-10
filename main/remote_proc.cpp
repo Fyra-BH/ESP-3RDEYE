@@ -53,3 +53,48 @@ bool RemoteProc::SendBytes(const std::string& bytes, uint8_t ip[4], uint16_t por
     }
     return true;
 }
+
+void RemoteProc::StartListening()
+{
+    // Set timeout
+    struct timeval timeout;
+    timeout.tv_sec = 10;
+    timeout.tv_usec = 0;
+    setsockopt (m_sock, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof timeout);
+    struct sockaddr_storage source_addr; // Large enough for both IPv4 or IPv6
+    socklen_t socklen = sizeof(source_addr);
+    char addr_str[128];
+    m_running.store(true);
+
+    while (m_running.load()) {
+        int len = recvfrom(m_sock, m_rxBuff, sizeof(m_rxBuff) - 1, 0, (struct sockaddr *)&source_addr, &socklen);
+        // Error occurred during receiving
+        if (len < 0) {
+            ESP_LOGE(TAG, "recvfrom failed: errno %d", errno);
+            continue;
+        }
+        inet_ntoa_r(((struct sockaddr_in *)&source_addr)->sin_addr, addr_str, sizeof(addr_str) - 1);
+        ESP_LOGI(TAG, "Received %d bytes from %s:", len, addr_str);
+        m_rxBuff[std::min(RX_BUF_SIZE - 1, len)] = 0; // Null-terminate whatever we received and treat like a string...
+        std::string message = ProcessMessage(m_rxBuff);
+        int err = sendto(m_sock, message.data(), message.size(), 0, (struct sockaddr *)&source_addr, sizeof(source_addr));
+        if (err < 0) {
+            ESP_LOGE(TAG, "Error occurred during sending: errno %d", errno);
+            break;
+        }
+    }
+}
+
+void RemoteProc::StopListening()
+{
+    m_running.store(false);
+}
+
+std::string RemoteProc::ProcessMessage(const std::string& message)
+{
+    ESP_LOGI(TAG, "Processing message: %s", message.c_str());
+    if (message == "SatoriEye_DISCOVERY_REQUEST") {
+        return "SatoriEye_DISCOVERY_RESPONSE,50";
+    }
+    return message;
+}
