@@ -1,4 +1,4 @@
-#include "remote_proc.h"
+#include "udp_server.h"
 
 #include "lwip/err.h"
 #include "lwip/sockets.h"
@@ -6,10 +6,11 @@
 #include <lwip/netdb.h>
 #include "esp_log.h"
 
+#include "data_proc_obj.h"
 
 const char *TAG = "REMOTE_PROC";
 
-RemoteProc::RemoteProc(int port)
+UdpServer::UdpServer(int port) : m_dataProc(new DataProcObj())
 {
     int ip_protocol = 0;
     int addr_family = AF_INET;
@@ -31,14 +32,14 @@ RemoteProc::RemoteProc(int port)
     ESP_LOGI(TAG, "Socket bound, port %d", port);
 }
 
-RemoteProc::~RemoteProc()
+UdpServer::~UdpServer()
 {
     ESP_LOGE(TAG, "Shutting down socket and restarting...");
     shutdown(m_sock, 0);
     close(m_sock);
 }
 
-bool RemoteProc::SendBytes(const std::string& bytes, uint8_t ip[4], uint16_t port)
+bool UdpServer::SendBytes(const std::string& bytes, uint8_t ip[4], uint16_t port)
 {
     struct sockaddr_in6 source_addr;
     struct sockaddr_in *source_addr_ip4 = (struct sockaddr_in *)&source_addr;
@@ -54,7 +55,7 @@ bool RemoteProc::SendBytes(const std::string& bytes, uint8_t ip[4], uint16_t por
     return true;
 }
 
-void RemoteProc::StartListening()
+void UdpServer::StartListening()
 {
     // Set timeout
     struct timeval timeout;
@@ -76,7 +77,7 @@ void RemoteProc::StartListening()
         inet_ntoa_r(((struct sockaddr_in *)&source_addr)->sin_addr, addr_str, sizeof(addr_str) - 1);
         ESP_LOGI(TAG, "Received %d bytes from %s:", len, addr_str);
         m_rxBuff[std::min(RX_BUF_SIZE - 1, len)] = 0; // Null-terminate whatever we received and treat like a string...
-        std::string message = ProcessMessage(m_rxBuff);
+        std::string message = m_dataProc->ProcessMessage(m_rxBuff);
         int err = sendto(m_sock, message.data(), message.size(), 0, (struct sockaddr *)&source_addr, sizeof(source_addr));
         if (err < 0) {
             ESP_LOGE(TAG, "Error occurred during sending: errno %d", errno);
@@ -85,16 +86,7 @@ void RemoteProc::StartListening()
     }
 }
 
-void RemoteProc::StopListening()
+void UdpServer::StopListening()
 {
     m_running.store(false);
-}
-
-std::string RemoteProc::ProcessMessage(const std::string& message)
-{
-    ESP_LOGI(TAG, "Processing message: %s", message.c_str());
-    if (message == "SatoriEye_DISCOVERY_REQUEST") {
-        return "SatoriEye_DISCOVERY_RESPONSE,50";
-    }
-    return message;
 }

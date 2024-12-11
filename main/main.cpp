@@ -9,6 +9,7 @@
 #include <chrono>
 #include <stdio.h>
 #include <inttypes.h>
+#include <esp_pthread.h>
 #include "sdkconfig.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -17,9 +18,8 @@
 #include "esp_system.h"
 #include "esp_log.h"
 
-#include "servo.h"
 #include "connect_wifi.h"
-#include "remote_proc.h"
+#include "udp_server.h"
 
 static const char *TAG = "APP MAIN";
 
@@ -55,24 +55,40 @@ void greeting(void)
 
 }
 
+esp_pthread_cfg_t create_config(const char *name, int core_id, int stack, int prio)
+{
+    auto cfg = esp_pthread_get_default_config();
+    cfg.thread_name = name;
+    cfg.pin_to_core = core_id;
+    cfg.stack_size = stack;
+    cfg.prio = prio;
+    return cfg;
+}
+
 extern "C" void app_main(void)
 {
     greeting();
     ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
     connect_wifi();
-    ServoGroup servoGroup;
     std::vector<std::thread> threads;
+    auto cfg = create_config("Thread 1", 0, 3 * 1024, 1);
+    cfg.inherit_cfg = true;
+    esp_pthread_set_cfg(&cfg);
+    threads.push_back(std::thread([&]{
+        UdpServer UdpServer(8888);
+        UdpServer.StartListening(); 
+    }));
     threads.push_back(std::thread([&]{
         while (true) {
-            servoGroup.FiveTimesInterpolation(SERVO_IDX_PITCH, 0, 180, 1.5);
-            servoGroup.FiveTimesInterpolation(SERVO_IDX_PITCH, 180, 0, 1.5);
+            std::stringstream ss;
+            ss << "core id: " << xPortGetCoreID()
+            << ", prio: " << uxTaskPriorityGet(nullptr)
+            << ", minimum free stack: " << uxTaskGetStackHighWaterMark(nullptr) << " bytes.";
+            ESP_LOGI(pcTaskGetName(nullptr), "%s", ss.str().c_str());
+            std::this_thread::sleep_for(std::chrono::seconds(10));
         }
     }));
-
-    RemoteProc remoteProc(8888);
-    remoteProc.StartListening();
-
-    for (auto &tid : threads) {
-        tid.join();
+    for (auto &t : threads) {
+        t.join();
     }
 }

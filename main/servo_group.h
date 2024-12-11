@@ -12,7 +12,7 @@
 
 enum ServoIdx : int {
     SERVO_IDX_PITCH = 0,
-    SERVO_IDX_ROW = 1,
+    SERVO_IDX_ROLL = 1,
     SERVO_IDX_YAW = 2,
 };
 
@@ -20,9 +20,12 @@ enum ServoIdx : int {
 class ServoGroup
 {
 public:
-    ServoGroup();
+    static ServoGroup &GetInstance(); // Singleton
     void SetAngle(int servoIdx, float angle);
     void FiveTimesInterpolation(int servoIdx, float angleStart, float angleEnd, float duration);
+private:
+    ServoGroup();
+private:
 };
 
 void servo_tasks_init();

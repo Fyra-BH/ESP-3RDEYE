@@ -1,4 +1,4 @@
-#include "servo.h"
+#include "servo_group.h"
 #include <thread>
 #include <chrono>
 
@@ -20,6 +20,12 @@ std::array<int, SERVO_NUM> SERVO_PULSE_GPIOS = {
     CONFIG_SERVO_PULSE_GPIO_ROLL,
     CONFIG_SERVO_PULSE_GPIO_YAW
 };
+
+ServoGroup &ServoGroup::GetInstance()
+{
+    static ServoGroup instance;
+    return instance;
+}
 
 ServoGroup::ServoGroup()
 {
