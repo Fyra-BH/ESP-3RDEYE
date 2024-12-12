@@ -2,6 +2,7 @@
 #define SERVO_H
 
 #include <array>
+#include <map>
 #include "sdkconfig.h"
 
 
@@ -16,15 +17,18 @@ enum ServoIdx : int {
     SERVO_IDX_YAW = 2,
 };
 
+using AngleLimits = std::pair<float, float>;
 
 class ServoGroup
 {
 public:
     static ServoGroup &GetInstance(); // Singleton
     void SetAngle(int servoIdx, float angle);
+    void SetAngleLimits(int servoIdx, float minAngle, float maxAngle);
     void FiveTimesInterpolation(int servoIdx, float angleStart, float angleEnd, float duration);
 private:
     ServoGroup();
+    std::map<int, AngleLimits> m_angleLimits;
 private:
 };
 

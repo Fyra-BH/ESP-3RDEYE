@@ -15,6 +15,14 @@
 static const char *TAG = "SERVO";
 
 constexpr int SERVO_NUM = 3;
+constexpr float MAX_ANGLE_PITCH = 150.0f;
+constexpr float MIN_ANGLE_PITCH = 30.0f;
+constexpr float MAX_ANGLE_ROLL = 150.0f;
+constexpr float MIN_ANGLE_ROLL = 30.0f;
+constexpr float MAX_ANGLE_YAW = 150.0f;
+constexpr float MIN_ANGLE_YAW = 90.0f;
+
+
 std::array<int, SERVO_NUM> SERVO_PULSE_GPIOS = {
     CONFIG_SERVO_PULSE_GPIO_PITCH,
     CONFIG_SERVO_PULSE_GPIO_ROLL,
@@ -41,6 +49,7 @@ ServoGroup::ServoGroup()
     ledc_timer.timer_num = LEDC_TIMER;
     ledc_timer.freq_hz = LEDC_FREQUENCY;  // Set output frequency at 50Hz
     ledc_timer.clk_cfg = LEDC_AUTO_CLK;
+    ledc_timer.deconfigure = false;
 
     ESP_ERROR_CHECK(ledc_timer_config(&ledc_timer));
 
@@ -53,16 +62,33 @@ ServoGroup::ServoGroup()
         ledc_channel[i].gpio_num       = gpio_array[i];
         ledc_channel[i].duty           = 0; // Set duty to 0%
         ledc_channel[i].hpoint         = 0;
-        
         ESP_ERROR_CHECK(ledc_channel_config(&ledc_channel[i]));
     }
+
+    SetAngleLimits(SERVO_IDX_PITCH, MIN_ANGLE_PITCH, MAX_ANGLE_PITCH);
+    SetAngleLimits(SERVO_IDX_ROLL, MIN_ANGLE_ROLL, MAX_ANGLE_ROLL);
+    SetAngleLimits(SERVO_IDX_YAW, MIN_ANGLE_YAW, MAX_ANGLE_YAW);
 }
 
+/**
+ * @brief 设置舵机的角度
+ * 
+ * @param servoIdx 舵机索引
+ * @param angle 舵机角度
+ */
 void ServoGroup::SetAngle(int servoIdx, float angle)
 {
     if (servoIdx < 0 || servoIdx >= SERVO_NUM) {
         ESP_LOGE(TAG, "servoIdx out of range");
         return;
+    }
+    
+    float maxAngle = m_angleLimits[servoIdx].second;
+    float minAngle = m_angleLimits[servoIdx].first;
+    if (angle > maxAngle) {
+        angle = maxAngle;
+    } else if (angle < minAngle) {
+        angle = minAngle;
     }
     float duty = (angle * 2.0 / 180.0 + 0.5) / 20.0; // 将角度转换为占空比;20.0代表20ms
     int pulse_width = (uint32_t)(duty * (float)(1 << LEDC_DUTY_RES));
@@ -70,7 +96,27 @@ void ServoGroup::SetAngle(int servoIdx, float angle)
     ledc_update_duty(LEDC_MODE, static_cast<ledc_channel_t>(servoIdx));
 }
 
-// 五次插值函数，输入为目标舵机、初始角度、目标角度
+
+/**
+ * @brief 设置舵机的角度范围
+ * 
+ * @param servoIdx 舵机索引
+ * @param minAngle 最小角度
+ * @param maxAngle 最大角度
+ */
+void ServoGroup::SetAngleLimits(int servoIdx, float minAngle, float maxAngle)
+{
+    m_angleLimits[servoIdx] = {minAngle, maxAngle};
+}
+
+/**
+ * @brief 五次插值函数，输入为目标舵机、初始角度、目标角度
+ * 
+ * @param servoIdx 舵机索引
+ * @param angleStart 初始角度
+ * @param angleEnd 目标角度
+ * @param duration 插值时间 (s)
+ */
 void ServoGroup::FiveTimesInterpolation(int servoIdx, float angleStart, float angleEnd, float duration)
 {
     // 定义插值时间总长度 (us)，可以根据需求调整

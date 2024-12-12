@@ -19,6 +19,7 @@
 #include "esp_log.h"
 
 #include "connect_wifi.h"
+#include "servo_group.h"
 #include "udp_server.h"
 
 static const char *TAG = "APP MAIN";
@@ -55,24 +56,15 @@ void greeting(void)
 
 }
 
-esp_pthread_cfg_t create_config(const char *name, int core_id, int stack, int prio)
-{
-    auto cfg = esp_pthread_get_default_config();
-    cfg.thread_name = name;
-    cfg.pin_to_core = core_id;
-    cfg.stack_size = stack;
-    cfg.prio = prio;
-    return cfg;
-}
-
 extern "C" void app_main(void)
 {
     greeting();
     ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
     connect_wifi();
     std::vector<std::thread> threads;
-    auto cfg = create_config("Thread 1", 0, 3 * 1024, 1);
-    cfg.inherit_cfg = true;
+    
+    auto cfg = esp_pthread_get_default_config();
+    cfg.stack_size = 8192;
     esp_pthread_set_cfg(&cfg);
     threads.push_back(std::thread([&]{
         UdpServer UdpServer(8888);
