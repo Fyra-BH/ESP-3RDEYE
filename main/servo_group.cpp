@@ -52,21 +52,27 @@ ServoGroup::ServoGroup()
     ledc_timer.deconfigure = false;
 
     ESP_ERROR_CHECK(ledc_timer_config(&ledc_timer));
+    
+    ledc_channel_config_t ledc_channel;
+    ledc_channel.speed_mode     = LEDC_MODE;
+    ledc_channel.timer_sel      = LEDC_TIMER;
+    ledc_channel.intr_type      = LEDC_INTR_DISABLE;
+    ledc_channel.duty           = 0; // Set duty to 0%
+    ledc_channel.hpoint         = 0;
 
-    ledc_channel_config_t ledc_channel[SERVO_NUM];
-    for (int i = 0; i < SERVO_NUM; i++) {
-        ledc_channel[i].speed_mode     = LEDC_MODE;
-        ledc_channel[i].channel        = static_cast<ledc_channel_t>(i);
-        ledc_channel[i].timer_sel      = LEDC_TIMER;
-        ledc_channel[i].intr_type      = LEDC_INTR_DISABLE;
-        ledc_channel[i].gpio_num       = gpio_array[i];
-        ledc_channel[i].duty           = 0; // Set duty to 0%
-        ledc_channel[i].hpoint         = 0;
-        ESP_ERROR_CHECK(ledc_channel_config(&ledc_channel[i]));
-    }
-
+    ledc_channel.gpio_num = gpio_array[SERVO_IDX_PITCH];
+    ledc_channel.channel = static_cast<ledc_channel_t>(SERVO_IDX_PITCH);
+    ledc_channel_config(&ledc_channel);
     SetAngleLimits(SERVO_IDX_PITCH, MIN_ANGLE_PITCH, MAX_ANGLE_PITCH);
+
+    ledc_channel.gpio_num = gpio_array[SERVO_IDX_ROLL];
+    ledc_channel.channel = static_cast<ledc_channel_t>(SERVO_IDX_ROLL);
+    ledc_channel_config(&ledc_channel);
     SetAngleLimits(SERVO_IDX_ROLL, MIN_ANGLE_ROLL, MAX_ANGLE_ROLL);
+
+    ledc_channel.gpio_num = gpio_array[SERVO_IDX_YAW];
+    ledc_channel.channel = static_cast<ledc_channel_t>(SERVO_IDX_YAW);
+    ledc_channel_config(&ledc_channel);
     SetAngleLimits(SERVO_IDX_YAW, MIN_ANGLE_YAW, MAX_ANGLE_YAW);
 }
 

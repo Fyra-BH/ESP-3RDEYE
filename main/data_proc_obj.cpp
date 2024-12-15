@@ -21,7 +21,7 @@ std::string DataProcObj::HandleDiscoveryRequest(const std::string& message)
     int power = 50; // %50
     // TODO: power = PowerManager::GetPowerLevel();
     ESP_LOGI(TAG, "Discovery request received, power level: %d%%", power);
-    return "SatoriEye_DISCOVERY_RESPONSE," + std::to_string(power);
+    return "SatoriEye_DISCOVERY_RESPONSE," + std::to_string(power) +  "\n";
 }
 
 std::string DataProcObj::HandleMoveRequest(const std::string& message)

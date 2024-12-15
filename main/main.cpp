@@ -21,6 +21,7 @@
 #include "connect_wifi.h"
 #include "servo_group.h"
 #include "udp_server.h"
+#include "led_controller.h"
 
 static const char *TAG = "APP MAIN";
 
@@ -60,16 +61,22 @@ extern "C" void app_main(void)
 {
     greeting();
     ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
+    LedController::GetInstance().SetColor(50, 0, 0);
     connect_wifi();
+    LedController::GetInstance().SetColor(0, 0, 50);
     std::vector<std::thread> threads;
     
     auto cfg = esp_pthread_get_default_config();
     cfg.stack_size = 8192;
+    cfg.prio = 5;
     esp_pthread_set_cfg(&cfg);
-    threads.push_back(std::thread([&]{
-        UdpServer UdpServer(8888);
-        UdpServer.StartListening(); 
+    threads.push_back(std::thread([&] {
+        while (true) {
+            UdpServer UdpServer(CONFIG_EXAMPLE_PORT);
+            UdpServer.StartListening();   
+        }
     }));
+
     threads.push_back(std::thread([&]{
         while (true) {
             std::stringstream ss;
