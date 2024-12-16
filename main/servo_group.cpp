@@ -15,13 +15,52 @@
 static const char *TAG = "SERVO";
 
 constexpr int SERVO_NUM = 3;
-constexpr float MAX_ANGLE_PITCH = 150.0f;
-constexpr float MIN_ANGLE_PITCH = 30.0f;
-constexpr float MAX_ANGLE_ROLL = 150.0f;
-constexpr float MIN_ANGLE_ROLL = 30.0f;
-constexpr float MAX_ANGLE_YAW = 150.0f;
-constexpr float MIN_ANGLE_YAW = 90.0f;
 
+// 舵机数据预处理配置
+constexpr float SERVO_SCALE_PITCH = 0.5f;
+constexpr float SERVO_OFFSET_PITCH = 30.0f;
+constexpr float SERVO_MIN_ANGLE_PITCH = 30.0f;
+constexpr float SERVO_MAX_ANGLE_PITCH = 150.0f;
+constexpr bool SERVO_IS_REVERSE_PITCH = false;
+
+constexpr float SERVO_SCALE_ROLL = 1.0f;
+constexpr float SERVO_OFFSET_ROLL = 30.0f;
+constexpr float SERVO_MIN_ANGLE_ROLL = 30.0f;
+constexpr float SERVO_MAX_ANGLE_ROLL = 150.0f;
+constexpr bool SERVO_IS_REVERSE_ROLL = true;
+
+constexpr float SERVO_SCALE_YAW = 0.5f;
+constexpr float SERVO_OFFSET_YAW = 30.0f;
+constexpr float SERVO_MIN_ANGLE_YAW = 90.0f;
+constexpr float SERVO_MAX_ANGLE_YAW = 150.0f;
+constexpr bool SERVO_IS_REVERSE_YAW = true;
+
+namespace {
+
+constexpr ServoDataConfig SERVO_CONFIG_PITCH {
+    SERVO_SCALE_PITCH,
+    SERVO_OFFSET_PITCH,
+    SERVO_MIN_ANGLE_PITCH,
+    SERVO_MAX_ANGLE_PITCH,
+    SERVO_IS_REVERSE_PITCH
+};
+
+const ServoDataConfig SERVO_CONFIG_ROLL {
+    SERVO_SCALE_ROLL,
+    SERVO_OFFSET_ROLL,
+    SERVO_MIN_ANGLE_ROLL,
+    SERVO_MAX_ANGLE_ROLL,
+    SERVO_IS_REVERSE_ROLL
+};
+
+constexpr ServoDataConfig SERVO_CONFIG_YAW {
+    SERVO_SCALE_YAW,
+    SERVO_OFFSET_YAW,
+    SERVO_MIN_ANGLE_YAW,
+    SERVO_MAX_ANGLE_YAW,
+    SERVO_IS_REVERSE_YAW
+};
+}
 
 std::array<int, SERVO_NUM> SERVO_PULSE_GPIOS = {
     CONFIG_SERVO_PULSE_GPIO_PITCH,
@@ -63,40 +102,47 @@ ServoGroup::ServoGroup()
     ledc_channel.gpio_num = gpio_array[SERVO_IDX_PITCH];
     ledc_channel.channel = static_cast<ledc_channel_t>(SERVO_IDX_PITCH);
     ledc_channel_config(&ledc_channel);
-    SetAngleLimits(SERVO_IDX_PITCH, MIN_ANGLE_PITCH, MAX_ANGLE_PITCH);
+    SetServoDataPreprocessor(SERVO_IDX_PITCH, SERVO_CONFIG_PITCH);
 
     ledc_channel.gpio_num = gpio_array[SERVO_IDX_ROLL];
     ledc_channel.channel = static_cast<ledc_channel_t>(SERVO_IDX_ROLL);
     ledc_channel_config(&ledc_channel);
-    SetAngleLimits(SERVO_IDX_ROLL, MIN_ANGLE_ROLL, MAX_ANGLE_ROLL);
+    SetServoDataPreprocessor(SERVO_IDX_ROLL, SERVO_CONFIG_ROLL);
 
     ledc_channel.gpio_num = gpio_array[SERVO_IDX_YAW];
     ledc_channel.channel = static_cast<ledc_channel_t>(SERVO_IDX_YAW);
     ledc_channel_config(&ledc_channel);
-    SetAngleLimits(SERVO_IDX_YAW, MIN_ANGLE_YAW, MAX_ANGLE_YAW);
+    SetServoDataPreprocessor(SERVO_IDX_YAW, SERVO_CONFIG_YAW);
 }
 
 /**
  * @brief 设置舵机的角度
  * 
  * @param servoIdx 舵机索引
- * @param angle 舵机角度
+ * @param theta 舵机角度
  */
-void ServoGroup::SetAngle(int servoIdx, float angle)
+void ServoGroup::SetAngle(int servoIdx, float theta)
 {
     if (servoIdx < 0 || servoIdx >= SERVO_NUM) {
         ESP_LOGE(TAG, "servoIdx out of range");
         return;
     }
-    
-    float maxAngle = m_angleLimits[servoIdx].second;
-    float minAngle = m_angleLimits[servoIdx].first;
-    if (angle > maxAngle) {
-        angle = maxAngle;
-    } else if (angle < minAngle) {
-        angle = minAngle;
+    float scale = m_servoDataPreprocessorMap[servoIdx].scale;
+    float offset = m_servoDataPreprocessorMap[servoIdx].offset;
+    float minAngle = m_servoDataPreprocessorMap[servoIdx].minAngle;
+    float maxAngle = m_servoDataPreprocessorMap[servoIdx].maxAngle;
+    bool isReverse = m_servoDataPreprocessorMap[servoIdx].isReverse;
+
+    theta = isReverse ? 180 - theta : theta;
+    theta *= scale;
+    theta += offset;
+
+    if (theta > maxAngle) {
+        theta = maxAngle;
+    } else if (theta < minAngle) {
+        theta = minAngle;
     }
-    float duty = (angle * 2.0 / 180.0 + 0.5) / 20.0; // 将角度转换为占空比;20.0代表20ms
+    float duty = (theta * 2.0 / 180.0 + 0.5) / 20.0; // 将角度转换为占空比;20.0代表20ms
     int pulse_width = (uint32_t)(duty * (float)(1 << LEDC_DUTY_RES));
     ledc_set_duty(LEDC_MODE, static_cast<ledc_channel_t>(servoIdx), pulse_width);
     ledc_update_duty(LEDC_MODE, static_cast<ledc_channel_t>(servoIdx));
@@ -104,15 +150,14 @@ void ServoGroup::SetAngle(int servoIdx, float angle)
 
 
 /**
- * @brief 设置舵机的角度范围
+ * @brief 设置舵机的预处理参数
  * 
  * @param servoIdx 舵机索引
- * @param minAngle 最小角度
- * @param maxAngle 最大角度
+ * @param servoDataPreprocessor 舵机预处理配置
  */
-void ServoGroup::SetAngleLimits(int servoIdx, float minAngle, float maxAngle)
+void ServoGroup::SetServoDataPreprocessor(int servoIdx, const ServoDataConfig &servoDataPreprocessor)
 {
-    m_angleLimits[servoIdx] = {minAngle, maxAngle};
+    m_servoDataPreprocessorMap.insert({servoIdx, servoDataPreprocessor});
 }
 
 /**

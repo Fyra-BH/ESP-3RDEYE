@@ -27,16 +27,16 @@ std::string DataProcObj::HandleDiscoveryRequest(const std::string& message)
 std::string DataProcObj::HandleMoveRequest(const std::string& message)
 {
     int pulseWidth[3];
-    float angle[3];
+    float theta[3];
     sscanf(message.c_str(), "CH1:%dCH2:%dCH3:%d", &pulseWidth[0], &pulseWidth[1], &pulseWidth[2]);
     // ESP_LOGI(TAG, "Move request received, pulse width: CH1:%d, CH2:%d, CH3:%d", pulseWidth[0], pulseWidth[1], pulseWidth[2]);
     for (int i = 0; i < 3; i++) {
-        angle[i] = m_servoInputAdapter.PulseWidth2Angle(pulseWidth[i]);
+        theta[i] = m_servoInputAdapter.PulseWidth2Angle(pulseWidth[i]);
     }
-    auto str = "CH1:" + std::to_string(angle[0]) + ",CH2:" + std::to_string(angle[1]) + ",CH3:" + std::to_string(angle[2]);
+    auto str = "CH1:" + std::to_string(theta[0]) + ",CH2:" + std::to_string(theta[1]) + ",CH3:" + std::to_string(theta[2]);
     ESP_LOGI(TAG, "Move request response: %s", str.c_str());
-    ServoGroup::GetInstance().SetAngle((int)SERVO_IDX_ROLL, angle[0]);
-    ServoGroup::GetInstance().SetAngle((int)SERVO_IDX_PITCH, 180 - angle[1]);
-    ServoGroup::GetInstance().SetAngle((int)SERVO_IDX_YAW, angle[2]);
+    ServoGroup::GetInstance().SetAngle((int)SERVO_IDX_ROLL, theta[0]);
+    ServoGroup::GetInstance().SetAngle((int)SERVO_IDX_PITCH, 180 - theta[1]);
+    ServoGroup::GetInstance().SetAngle((int)SERVO_IDX_YAW, theta[2]);
     return str;
 }

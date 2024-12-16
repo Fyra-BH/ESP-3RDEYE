@@ -4,7 +4,7 @@
 #include <array>
 #include <map>
 #include "sdkconfig.h"
-
+#include "servor_input_adapter.h"
 
 #define LEDC_TIMER              LEDC_TIMER_0
 #define LEDC_MODE               LEDC_LOW_SPEED_MODE
@@ -23,12 +23,12 @@ class ServoGroup
 {
 public:
     static ServoGroup &GetInstance(); // Singleton
-    void SetAngle(int servoIdx, float angle);
-    void SetAngleLimits(int servoIdx, float minAngle, float maxAngle);
+    void SetAngle(int servoIdx, float theta);
+    void SetServoDataPreprocessor(int servoIdx, const ServoDataConfig &servoDataPreprocessor);
     void FiveTimesInterpolation(int servoIdx, float angleStart, float angleEnd, float duration);
 private:
     ServoGroup();
-    std::map<int, AngleLimits> m_angleLimits;
+    std::map<int, ServoDataConfig> m_servoDataPreprocessorMap;
 private:
 };
 
