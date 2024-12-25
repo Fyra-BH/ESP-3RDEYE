@@ -35,7 +35,7 @@ LedController::LedController()
 void LedController::SetColor(int red, int green, int blue)
 {
     /* Set the LED pixel using RGB from 0 (0%) to 255 (100%) for each color */
-    led_strip_set_pixel(m_led_strip, 0, red, green, blue);
+    led_strip_set_pixel(m_led_strip, 0, green, red, blue);
     /* Refresh the strip to send data */
     led_strip_refresh(m_led_strip);
 }

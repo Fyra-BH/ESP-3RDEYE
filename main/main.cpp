@@ -5,7 +5,6 @@
  */
 
 #include <vector>
-#include <thread>
 #include <chrono>
 #include <stdio.h>
 #include <inttypes.h>
@@ -22,6 +21,7 @@
 #include "servo_group.h"
 #include "udp_server.h"
 #include "led_controller.h"
+#include "esp_thread_helper.h"
 
 static const char *TAG = "APP MAIN";
 
@@ -64,30 +64,32 @@ extern "C" void app_main(void)
     LedController::GetInstance().SetColor(50, 0, 0);
     connect_wifi();
     LedController::GetInstance().SetColor(0, 0, 50);
-    std::vector<std::thread> threads;
     
-    auto cfg = esp_pthread_get_default_config();
-    cfg.stack_size = 8192;
-    cfg.prio = 5;
-    esp_pthread_set_cfg(&cfg);
-    threads.push_back(std::thread([&] {
+    EspThreadHelper th;
+    th.AddTask([&] {
         while (true) {
             UdpServer UdpServer(CONFIG_EXAMPLE_PORT);
             UdpServer.StartListening();   
         }
-    }));
+    }, 8192);
 
-    threads.push_back(std::thread([&]{
-        while (true) {
-            std::stringstream ss;
-            ss << "core id: " << xPortGetCoreID()
-            << ", prio: " << uxTaskPriorityGet(nullptr)
-            << ", minimum free stack: " << uxTaskGetStackHighWaterMark(nullptr) << " bytes.";
-            ESP_LOGI(pcTaskGetName(nullptr), "%s", ss.str().c_str());
-            std::this_thread::sleep_for(std::chrono::seconds(10));
+    th.AddTask([&] {
+        constexpr size_t LOOP_COUNT = 1000;
+        for (size_t i = 0; i < LOOP_COUNT; ++i) {
+            ESP_LOGI(TAG, "LED BLINK");
+            LedController::GetInstance().SetColor(0, 50, 0);
+            std::this_thread::sleep_for(std::chrono::microseconds(500));
+            LedController::GetInstance().SetColor(0, 0, 50);
+            std::this_thread::sleep_for(std::chrono::microseconds(500));
         }
-    }));
-    for (auto &t : threads) {
-        t.join();
-    }
+        ESP_LOGI(TAG, "LED BLINK DONE");
+    });
+
+    th.AddTask([&] {
+        while (true) {
+            th.PrintInfo();
+            std::this_thread::sleep_for(std::chrono::seconds(3));
+        }
+    });
+
 }
