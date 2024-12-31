@@ -36,7 +36,7 @@ std::string DataProcObj::HandleMoveRequest(const std::string& message)
     auto str = "CH1:" + std::to_string(theta[0]) + ",CH2:" + std::to_string(theta[1]) + ",CH3:" + std::to_string(theta[2]);
     ESP_LOGI(TAG, "Move request response: %s", str.c_str());
     ServoGroup::GetInstance().SetAngle((int)SERVO_IDX_ROLL, theta[0]);
-    ServoGroup::GetInstance().SetAngle((int)SERVO_IDX_PITCH, 180 - theta[1]);
-    ServoGroup::GetInstance().SetAngle((int)SERVO_IDX_YAW, theta[2]);
+    ServoGroup::GetInstance().SetAngle((int)SERVO_IDX_PITCH, theta[1]);
+    ServoGroup::GetInstance().SetAngle((int)SERVO_IDX_YAW, theta[2] - (theta[1] - 90.0f) * 0.8f);
     return str;
 }

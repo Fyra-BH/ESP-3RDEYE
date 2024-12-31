@@ -72,19 +72,7 @@ extern "C" void app_main(void)
             UdpServer.StartListening();   
         }
     }, 8192);
-
-    th.AddTask([&] {
-        constexpr size_t LOOP_COUNT = 1000;
-        for (size_t i = 0; i < LOOP_COUNT; ++i) {
-            ESP_LOGI(TAG, "LED BLINK");
-            LedController::GetInstance().SetColor(0, 50, 0);
-            std::this_thread::sleep_for(std::chrono::microseconds(500));
-            LedController::GetInstance().SetColor(0, 0, 50);
-            std::this_thread::sleep_for(std::chrono::microseconds(500));
-        }
-        ESP_LOGI(TAG, "LED BLINK DONE");
-    });
-
+    
     th.AddTask([&] {
         while (true) {
             th.PrintInfo();

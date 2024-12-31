@@ -17,22 +17,25 @@ static const char *TAG = "SERVO";
 constexpr int SERVO_NUM = 3;
 
 // 舵机数据预处理配置
-constexpr float SERVO_SCALE_PITCH = 0.5f;
-constexpr float SERVO_OFFSET_PITCH = 30.0f;
-constexpr float SERVO_MIN_ANGLE_PITCH = 30.0f;
-constexpr float SERVO_MAX_ANGLE_PITCH = 150.0f;
-constexpr bool SERVO_IS_REVERSE_PITCH = false;
+constexpr float SERVO_SCALE_PITCH = 1.0f / 3.0f;
+constexpr float SERVO_OFFSET_PITCH = 110.0f;
+constexpr float SERVO_ZEROPOINT_PITCH = 60.0f;
+constexpr float SERVO_MIN_ANGLE_PITCH = 0.0f;
+constexpr float SERVO_MAX_ANGLE_PITCH = 90.0f;
+constexpr bool SERVO_IS_REVERSE_PITCH = true;
 
-constexpr float SERVO_SCALE_ROLL = 1.0f;
-constexpr float SERVO_OFFSET_ROLL = 30.0f;
-constexpr float SERVO_MIN_ANGLE_ROLL = 30.0f;
-constexpr float SERVO_MAX_ANGLE_ROLL = 150.0f;
+constexpr float SERVO_SCALE_ROLL = 1.0f / 3.0;
+constexpr float SERVO_OFFSET_ROLL = 0.0f;
+constexpr float SERVO_ZEROPOINT_ROLL = 90.0f;
+constexpr float SERVO_MIN_ANGLE_ROLL = 45.0f;
+constexpr float SERVO_MAX_ANGLE_ROLL = 135.0f;
 constexpr bool SERVO_IS_REVERSE_ROLL = true;
 
-constexpr float SERVO_SCALE_YAW = 0.5f;
-constexpr float SERVO_OFFSET_YAW = 30.0f;
-constexpr float SERVO_MIN_ANGLE_YAW = 90.0f;
-constexpr float SERVO_MAX_ANGLE_YAW = 150.0f;
+constexpr float SERVO_SCALE_YAW = 1.0f / 3.0f;
+constexpr float SERVO_OFFSET_YAW = -120.0f;
+constexpr float SERVO_ZEROPOINT_YAW = 120.0f;
+constexpr float SERVO_MIN_ANGLE_YAW = 120.0f;
+constexpr float SERVO_MAX_ANGLE_YAW = 180.0f;
 constexpr bool SERVO_IS_REVERSE_YAW = true;
 
 namespace {
@@ -40,6 +43,7 @@ namespace {
 constexpr ServoDataConfig SERVO_CONFIG_PITCH {
     SERVO_SCALE_PITCH,
     SERVO_OFFSET_PITCH,
+    SERVO_ZEROPOINT_PITCH,
     SERVO_MIN_ANGLE_PITCH,
     SERVO_MAX_ANGLE_PITCH,
     SERVO_IS_REVERSE_PITCH
@@ -48,6 +52,7 @@ constexpr ServoDataConfig SERVO_CONFIG_PITCH {
 const ServoDataConfig SERVO_CONFIG_ROLL {
     SERVO_SCALE_ROLL,
     SERVO_OFFSET_ROLL,
+    SERVO_ZEROPOINT_ROLL,
     SERVO_MIN_ANGLE_ROLL,
     SERVO_MAX_ANGLE_ROLL,
     SERVO_IS_REVERSE_ROLL
@@ -56,6 +61,7 @@ const ServoDataConfig SERVO_CONFIG_ROLL {
 constexpr ServoDataConfig SERVO_CONFIG_YAW {
     SERVO_SCALE_YAW,
     SERVO_OFFSET_YAW,
+    SERVO_ZEROPOINT_YAW,
     SERVO_MIN_ANGLE_YAW,
     SERVO_MAX_ANGLE_YAW,
     SERVO_IS_REVERSE_YAW
@@ -129,13 +135,13 @@ void ServoGroup::SetAngle(int servoIdx, float theta)
     }
     float scale = m_servoDataPreprocessorMap[servoIdx].scale;
     float offset = m_servoDataPreprocessorMap[servoIdx].offset;
+    float zeroPoint = m_servoDataPreprocessorMap[servoIdx].zeroPoint;
     float minAngle = m_servoDataPreprocessorMap[servoIdx].minAngle;
     float maxAngle = m_servoDataPreprocessorMap[servoIdx].maxAngle;
     bool isReverse = m_servoDataPreprocessorMap[servoIdx].isReverse;
 
     theta = isReverse ? 180 - theta : theta;
-    theta *= scale;
-    theta += offset;
+    theta = ((theta - offset) - zeroPoint) * scale + zeroPoint;
 
     if (theta > maxAngle) {
         theta = maxAngle;
@@ -144,6 +150,7 @@ void ServoGroup::SetAngle(int servoIdx, float theta)
     }
     float duty = (theta * 2.0 / 180.0 + 0.5) / 20.0; // 将角度转换为占空比;20.0代表20ms
     int pulse_width = (uint32_t)(duty * (float)(1 << LEDC_DUTY_RES));
+    // ESP_LOGI(TAG, "servoIdx: %d, theta: %f, duty: %f, pulse_width: %d", servoIdx, theta, duty, pulse_width);
     ledc_set_duty(LEDC_MODE, static_cast<ledc_channel_t>(servoIdx), pulse_width);
     ledc_update_duty(LEDC_MODE, static_cast<ledc_channel_t>(servoIdx));
 }

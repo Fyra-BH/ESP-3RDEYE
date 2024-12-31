@@ -21,6 +21,7 @@
 struct ServoDataConfig {
     float scale;
     float offset;
+    float zeroPoint;
     float minAngle;
     float maxAngle;
     bool isReverse;
