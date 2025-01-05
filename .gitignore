@@ -110,3 +110,5 @@ XUNIT_RESULT*.xml
 .vale/styles/*
 
 sdkconfig*
+
+*.bin
