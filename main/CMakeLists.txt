@@ -7,7 +7,7 @@ idf_component_register(SRCS ${APP_SRC}
 
 # 产生配置文件
 execute_process(
-    COMMAND python -c "open('${CMAKE_BINARY_DIR}/config.param.bin', 'w').write(open('config.param').read() + '\\0')"
+    COMMAND python -c "open('${CMAKE_BINARY_DIR}/config.param.bin', 'wb').write(open('config.param', 'rb').read() + b'\\0')"
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../config"
     RESULT_VARIABLE result
 )

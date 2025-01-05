@@ -44,6 +44,7 @@ EspPartitionParam espParam("config");
 ServoDataConfig g_ServoConfigCH1;
 ServoDataConfig g_ServoConfigCH2;
 ServoDataConfig g_ServoConfigCH3;
+std::array<int, SERVO_NUM> g_ServoPwmGpios;
 
 void SetUpServoDataPreprocessor()
 {
@@ -73,15 +74,16 @@ void SetUpServoDataPreprocessor()
         espParam.GetFloatParam("SERVO_MAX_ANGLE_CH3", SERVO_MAX_ANGLE_CH3),
         espParam.GetBoolParam("SERVO_IS_REVERSE_CH3", SERVO_IS_REVERSE_CH3)
     };
+
+    g_ServoPwmGpios = {
+        espParam.GetIntParam("SERVO_PULSE_GPIO_CH1", CONFIG_SERVO_PULSE_GPIO_CH1),
+        espParam.GetIntParam("SERVO_PULSE_GPIO_CH2", CONFIG_SERVO_PULSE_GPIO_CH2),
+        espParam.GetIntParam("SERVO_PULSE_GPIO_CH3", CONFIG_SERVO_PULSE_GPIO_CH3)
+    };
 }
 
 }
 
-std::array<int, SERVO_NUM> SERVO_PULSE_GPIOS = {
-    CONFIG_SERVO_PULSE_GPIO_CH1,
-    CONFIG_SERVO_PULSE_GPIO_CH2,
-    CONFIG_SERVO_PULSE_GPIO_CH3
-};
 
 ServoGroup &ServoGroup::GetInstance()
 {
@@ -95,7 +97,7 @@ ServoGroup::ServoGroup()
     /*########################### PWM #################################*/
     // 对于ESP32C3，使用LEDC驱动PWM
     // Prepare and then apply the LEDC PWM timer configuration
-    const std::array<int, SERVO_NUM> &gpio_array=SERVO_PULSE_GPIOS;
+    const std::array<int, SERVO_NUM> &gpio_array=g_ServoPwmGpios;
     
     ledc_timer_config_t ledc_timer;
 

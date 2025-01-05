@@ -1,7 +1,23 @@
+# wifi名称和密码
 ESP_WIFI_SSID=ChinaNet-5aGS
 ESP_WIFI_PASSWORD=ssnh1401
 
-SERVO_SCALE_CH1=0.5
+# 眼球左右:CH1
+# 眼球上下:CH2
+# 上眼皮上下:CH3
+SERVO_PULSE_GPIO_CH1=7
+SERVO_PULSE_GPIO_CH2=5
+SERVO_PULSE_GPIO_CH3=6
+
+## 舵机控制参数解释 #########################################################
+# scale: 手机App摇杆映射到舵机的比例, 这个值越大, 同样的摇杆移动, 舵机的转动角度也越大
+# offset: 手机App摇杆映射到舵机的偏移量, 这个值可以微调舵机的相对角度
+# zeropoint: 舵机的零位置, 用于调舵机的归中位值
+# min_angle: 舵机的最小角度
+# max_angle: 舵机的最大角度
+# is_reverse: 舵机的转动方向, true表示反转, false表示不反转
+
+SERVO_SCALE_CH1=0.333
 SERVO_OFFSET_CH1=0.0
 SERVO_ZEROPOINT_CH1=90.0
 SERVO_MIN_ANGLE_CH1=45.0

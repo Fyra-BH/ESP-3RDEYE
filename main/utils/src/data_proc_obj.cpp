@@ -37,6 +37,6 @@ std::string DataProcObj::HandleMoveRequest(const std::string& message)
     ESP_LOGI(TAG, "Move request response: %s", str.c_str());
     ServoGroup::GetInstance().SetAngle((int)SERVO_IDX_CH1, theta[0]);
     ServoGroup::GetInstance().SetAngle((int)SERVO_IDX_CH2, theta[1]);
-    ServoGroup::GetInstance().SetAngle((int)SERVO_IDX_CH3, theta[2] - (theta[1] - 90.0f) * 0.8f);
+    ServoGroup::GetInstance().SetAngle((int)SERVO_IDX_CH3, theta[2] - (theta[1] - 90.0f) * 0.8f); // TODO: magic number
     return str;
 }
