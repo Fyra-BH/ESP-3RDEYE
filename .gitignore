@@ -93,7 +93,7 @@ build
 dependencies.lock
 
 # managed_components for examples
-managed_components
+# managed_components
 
 # pytest log
 pytest-embedded/
@@ -112,3 +112,6 @@ XUNIT_RESULT*.xml
 sdkconfig*
 
 *.bin
+*.exe
+*.*build
+*.dist
