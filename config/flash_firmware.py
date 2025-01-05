@@ -5,7 +5,7 @@ import os
 config = configparser.ConfigParser()
 
 # Read the configuration file with UTF-8 encoding
-config.read('config.param', encoding='utf-8')
+config.read('config.ini', encoding='utf-8')
 
 # Get the Wi-Fi name and password
 wifi_ssid = config.get('DEFAULT', 'ESP_WIFI_SSID')
