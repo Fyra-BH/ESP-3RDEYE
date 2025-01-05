@@ -15,7 +15,7 @@ EspPartitionParam::EspPartitionParam(const std::string &partitionName) {
     std::istringstream iss(data);
     std::string line;
     while (std::getline(iss, line)) {
-        if (line.empty() || line[0] == '#') {
+        if (line.empty() || line[0] == '#' || line[0] == '[') {
             continue;
         }
         size_t pos = line.find('=');

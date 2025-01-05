@@ -66,7 +66,7 @@ extern "C" void app_main(void)
     LedController::GetInstance().SetColor(50, 0, 0);
     connect_wifi();
     LedController::GetInstance().SetColor(0, 0, 50);
-    int udpPort =  EspPartitionParam("config").GetIntParam("ESP_UDP_PORT", CONFIG_EXAMPLE_PORT);
+    int udpPort = EspPartitionParam("config").GetIntParam("ESP_UDP_PORT", CONFIG_EXAMPLE_PORT);
     
     EspThreadHelper th;
     th.AddTask([&] {
