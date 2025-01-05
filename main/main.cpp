@@ -23,6 +23,8 @@
 #include "led_controller.h"
 #include "esp_thread_helper.h"
 
+#include "esp_partition_param.h"
+
 static const char *TAG = "APP MAIN";
 
 
@@ -64,6 +66,7 @@ extern "C" void app_main(void)
     LedController::GetInstance().SetColor(50, 0, 0);
     connect_wifi();
     LedController::GetInstance().SetColor(0, 0, 50);
+    int udpPort =  EspPartitionParam("config").GetIntParam("ESP_UDP_PORT", CONFIG_EXAMPLE_PORT);
     
     EspThreadHelper th;
     th.AddTask([&] {
