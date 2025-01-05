@@ -151,7 +151,7 @@ void ServoGroup::SetAngle(int servoIdx, float theta)
     bool isReverse = m_servoDataPreprocessorMap[servoIdx].isReverse;
 
     theta = isReverse ? 180 - theta : theta;
-    theta = (theta - zeroPoint) * scale + zeroPoint -offset;
+    theta = (theta - zeroPoint) * scale + zeroPoint - offset;
 
     if (theta > maxAngle) {
         theta = maxAngle;
