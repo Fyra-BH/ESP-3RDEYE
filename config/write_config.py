@@ -23,5 +23,6 @@ print(f"ESP COM Port: {esp_com_port}")
 
 # Flash the config
 ESP_TOOL_EXE = os.path.abspath('esptool.exe')
+open('config.bin', 'wb').write(open('config.ini', 'rb').read() + b'\0')
 # esptool.main(['--chip', 'esp32c3', '--port', esp_com_port, 'write_flash', ' 0x150000', 'config.bin'])
 os.system(f'{ESP_TOOL_EXE} --chip esp32c3 --port {esp_com_port} write_flash 0x150000 config.bin')

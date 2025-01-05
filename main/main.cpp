@@ -71,7 +71,7 @@ extern "C" void app_main(void)
     EspThreadHelper th;
     th.AddTask([&] {
         while (true) {
-            UdpServer UdpServer(CONFIG_EXAMPLE_PORT);
+            UdpServer UdpServer(udpPort);
             UdpServer.StartListening();   
         }
     }, 8192);
