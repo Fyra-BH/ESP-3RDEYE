@@ -12,9 +12,9 @@
 #define LEDC_FREQUENCY          (50) // Frequency in Hertz. Set frequency at 50 Hz
 
 enum ServoIdx : int {
-    SERVO_IDX_PITCH = 0,
-    SERVO_IDX_ROLL = 1,
-    SERVO_IDX_YAW = 2,
+    SERVO_IDX_CH1 = 0,
+    SERVO_IDX_CH2 = 1,
+    SERVO_IDX_CH3 = 2,
 };
 
 using AngleLimits = std::pair<float, float>;

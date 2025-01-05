@@ -6,7 +6,7 @@ menu "example PINS Configuration"
         prompt "Blink LED type"
         default BLINK_LED_GPIO
         help
-            Select the LED type. A normal level controlled LED or an addressable LED strip.
+            Select the LED type. A normal level contCH2ed LED or an addressable LED strip.
             The default selection is based on the Espressif DevKit boards.
             You can change the default selection according to your board.
 
@@ -34,7 +34,7 @@ menu "example PINS Configuration"
     config BLINK_GPIO
         int "Blink GPIO number"
         range ENV_GPIO_RANGE_MIN ENV_GPIO_OUT_RANGE_MAX
-        default 25
+        default 8
         help
             GPIO number (IOxx) to blink on and off the LED.
             Some GPIOs are used for other purposes (flash connections, etc.) and cannot be used to blink.
@@ -46,27 +46,27 @@ menu "example PINS Configuration"
         help
             Define the blinking period in milliseconds.
     
-    config SERVO_PULSE_GPIO_PITCH
-        int "Servo pulse GPIO pitch"
+    config SERVO_PULSE_GPIO_CH1
+        int "Servo pulse GPIO CH1"
         range ENV_GPIO_RANGE_MIN ENV_GPIO_OUT_RANGE_MAX
         default 1
         help
-            GPIO number (IOxx) to control the servo pulse width for pitch.
+            GPIO number (IOxx) to control the servo pulse width for CH1.
             Some GPIOs are used for other purposes (flash connections, etc.) and cannot be used to control the servo.
 
-    config SERVO_PULSE_GPIO_ROLL
-        int "Servo pulse GPIO roll"
+    config SERVO_PULSE_GPIO_CH2
+        int "Servo pulse GPIO CH2"
         range ENV_GPIO_RANGE_MIN ENV_GPIO_OUT_RANGE_MAX
         default 2
         help
-            GPIO number (IOxx) to control the servo pulse width for roll.
+            GPIO number (IOxx) to control the servo pulse width for CH2.
     
-    config SERVO_PULSE_GPIO_YAW
-        int "Servo pulse GPIO yaw"
+    config SERVO_PULSE_GPIO_CH3
+        int "Servo pulse GPIO CH3"
         range ENV_GPIO_RANGE_MIN ENV_GPIO_OUT_RANGE_MAX
         default 3
         help
-            GPIO number (IOxx) to control the servo pulse width for yaw.
+            GPIO number (IOxx) to control the servo pulse width for CH3.
         
 endmenu
 

@@ -9,69 +9,78 @@
 #include "freertos/task.h"
 #include "freertos/queue.h"
 
-#include <math.h>
-
+#include "esp_partition_param.h"
 
 static const char *TAG = "SERVO";
 
 constexpr int SERVO_NUM = 3;
 
 // 舵机数据预处理配置
-constexpr float SERVO_SCALE_PITCH = 1.0f / 3.0f;
-constexpr float SERVO_OFFSET_PITCH = 110.0f;
-constexpr float SERVO_ZEROPOINT_PITCH = 60.0f;
-constexpr float SERVO_MIN_ANGLE_PITCH = 0.0f;
-constexpr float SERVO_MAX_ANGLE_PITCH = 90.0f;
-constexpr bool SERVO_IS_REVERSE_PITCH = true;
+constexpr float SERVO_SCALE_CH1 = 1.0f / 3.0f;
+constexpr float SERVO_OFFSET_CH1 = 0.0f;
+constexpr float SERVO_ZEROPOINT_CH1 = 90.0f;
+constexpr float SERVO_MIN_ANGLE_CH1 = 45.0f;
+constexpr float SERVO_MAX_ANGLE_CH1 = 135.0f;
+constexpr bool SERVO_IS_REVERSE_CH1 = true;
 
-constexpr float SERVO_SCALE_ROLL = 1.0f / 3.0;
-constexpr float SERVO_OFFSET_ROLL = 0.0f;
-constexpr float SERVO_ZEROPOINT_ROLL = 90.0f;
-constexpr float SERVO_MIN_ANGLE_ROLL = 45.0f;
-constexpr float SERVO_MAX_ANGLE_ROLL = 135.0f;
-constexpr bool SERVO_IS_REVERSE_ROLL = true;
+constexpr float SERVO_SCALE_CH2 = 1.0f / 3.0;
+constexpr float SERVO_OFFSET_CH2 = 40.0f;
+constexpr float SERVO_ZEROPOINT_CH2 = 60.0f;
+constexpr float SERVO_MIN_ANGLE_CH2 = 0.0f;
+constexpr float SERVO_MAX_ANGLE_CH2 = 90.0f;
+constexpr bool SERVO_IS_REVERSE_CH2 = true;
 
-constexpr float SERVO_SCALE_YAW = 1.0f / 3.0f;
-constexpr float SERVO_OFFSET_YAW = -120.0f;
-constexpr float SERVO_ZEROPOINT_YAW = 120.0f;
-constexpr float SERVO_MIN_ANGLE_YAW = 120.0f;
-constexpr float SERVO_MAX_ANGLE_YAW = 180.0f;
-constexpr bool SERVO_IS_REVERSE_YAW = true;
+constexpr float SERVO_SCALE_CH3 = 1.0f / 3.0f;
+constexpr float SERVO_OFFSET_CH3 = -40.0f;
+constexpr float SERVO_ZEROPOINT_CH3 = 120.0f;
+constexpr float SERVO_MIN_ANGLE_CH3 = 120.0f;
+constexpr float SERVO_MAX_ANGLE_CH3 = 180.0f;
+constexpr bool SERVO_IS_REVERSE_CH3 = true;
 
 namespace {
 
-constexpr ServoDataConfig SERVO_CONFIG_PITCH {
-    SERVO_SCALE_PITCH,
-    SERVO_OFFSET_PITCH,
-    SERVO_ZEROPOINT_PITCH,
-    SERVO_MIN_ANGLE_PITCH,
-    SERVO_MAX_ANGLE_PITCH,
-    SERVO_IS_REVERSE_PITCH
-};
+EspPartitionParam espParam("config");
 
-const ServoDataConfig SERVO_CONFIG_ROLL {
-    SERVO_SCALE_ROLL,
-    SERVO_OFFSET_ROLL,
-    SERVO_ZEROPOINT_ROLL,
-    SERVO_MIN_ANGLE_ROLL,
-    SERVO_MAX_ANGLE_ROLL,
-    SERVO_IS_REVERSE_ROLL
-};
+ServoDataConfig g_ServoConfigCH1;
+ServoDataConfig g_ServoConfigCH2;
+ServoDataConfig g_ServoConfigCH3;
 
-constexpr ServoDataConfig SERVO_CONFIG_YAW {
-    SERVO_SCALE_YAW,
-    SERVO_OFFSET_YAW,
-    SERVO_ZEROPOINT_YAW,
-    SERVO_MIN_ANGLE_YAW,
-    SERVO_MAX_ANGLE_YAW,
-    SERVO_IS_REVERSE_YAW
-};
+void SetUpServoDataPreprocessor()
+{
+    g_ServoConfigCH1 = {
+        espParam.GetFloatParam("SERVO_SCALE_CH1", SERVO_SCALE_CH1),
+        espParam.GetFloatParam("SERVO_OFFSET_CH1", SERVO_OFFSET_CH1),
+        espParam.GetFloatParam("SERVO_ZEROPOINT_CH1", SERVO_ZEROPOINT_CH1),
+        espParam.GetFloatParam("SERVO_MIN_ANGLE_CH1", SERVO_MIN_ANGLE_CH1),
+        espParam.GetFloatParam("SERVO_MAX_ANGLE_CH1", SERVO_MAX_ANGLE_CH1),
+        espParam.GetBoolParam("SERVO_IS_REVERSE_CH1", SERVO_IS_REVERSE_CH1)
+    };
+
+    g_ServoConfigCH2 = {
+        espParam.GetFloatParam("SERVO_SCALE_CH2", SERVO_SCALE_CH2),
+        espParam.GetFloatParam("SERVO_OFFSET_CH2", SERVO_OFFSET_CH2),
+        espParam.GetFloatParam("SERVO_ZEROPOINT_CH2", SERVO_ZEROPOINT_CH2),
+        espParam.GetFloatParam("SERVO_MIN_ANGLE_CH2", SERVO_MIN_ANGLE_CH2),
+        espParam.GetFloatParam("SERVO_MAX_ANGLE_CH2", SERVO_MAX_ANGLE_CH2),
+        espParam.GetBoolParam("SERVO_IS_REVERSE_CH2", SERVO_IS_REVERSE_CH2)
+    };
+
+    g_ServoConfigCH3 = {
+        espParam.GetFloatParam("SERVO_SCALE_CH3", SERVO_SCALE_CH3),
+        espParam.GetFloatParam("SERVO_OFFSET_CH3", SERVO_OFFSET_CH3),
+        espParam.GetFloatParam("SERVO_ZEROPOINT_CH3", SERVO_ZEROPOINT_CH3),
+        espParam.GetFloatParam("SERVO_MIN_ANGLE_CH3", SERVO_MIN_ANGLE_CH3),
+        espParam.GetFloatParam("SERVO_MAX_ANGLE_CH3", SERVO_MAX_ANGLE_CH3),
+        espParam.GetBoolParam("SERVO_IS_REVERSE_CH3", SERVO_IS_REVERSE_CH3)
+    };
+}
+
 }
 
 std::array<int, SERVO_NUM> SERVO_PULSE_GPIOS = {
-    CONFIG_SERVO_PULSE_GPIO_PITCH,
-    CONFIG_SERVO_PULSE_GPIO_ROLL,
-    CONFIG_SERVO_PULSE_GPIO_YAW
+    CONFIG_SERVO_PULSE_GPIO_CH1,
+    CONFIG_SERVO_PULSE_GPIO_CH2,
+    CONFIG_SERVO_PULSE_GPIO_CH3
 };
 
 ServoGroup &ServoGroup::GetInstance()
@@ -82,6 +91,7 @@ ServoGroup &ServoGroup::GetInstance()
 
 ServoGroup::ServoGroup()
 {
+    SetUpServoDataPreprocessor();
     /*########################### PWM #################################*/
     // 对于ESP32C3，使用LEDC驱动PWM
     // Prepare and then apply the LEDC PWM timer configuration
@@ -105,20 +115,20 @@ ServoGroup::ServoGroup()
     ledc_channel.duty           = 0; // Set duty to 0%
     ledc_channel.hpoint         = 0;
 
-    ledc_channel.gpio_num = gpio_array[SERVO_IDX_PITCH];
-    ledc_channel.channel = static_cast<ledc_channel_t>(SERVO_IDX_PITCH);
+    ledc_channel.gpio_num = gpio_array[SERVO_IDX_CH1];
+    ledc_channel.channel = static_cast<ledc_channel_t>(SERVO_IDX_CH1);
     ledc_channel_config(&ledc_channel);
-    SetServoDataPreprocessor(SERVO_IDX_PITCH, SERVO_CONFIG_PITCH);
+    SetServoDataPreprocessor(SERVO_IDX_CH1, g_ServoConfigCH1);
 
-    ledc_channel.gpio_num = gpio_array[SERVO_IDX_ROLL];
-    ledc_channel.channel = static_cast<ledc_channel_t>(SERVO_IDX_ROLL);
+    ledc_channel.gpio_num = gpio_array[SERVO_IDX_CH2];
+    ledc_channel.channel = static_cast<ledc_channel_t>(SERVO_IDX_CH2);
     ledc_channel_config(&ledc_channel);
-    SetServoDataPreprocessor(SERVO_IDX_ROLL, SERVO_CONFIG_ROLL);
+    SetServoDataPreprocessor(SERVO_IDX_CH2, g_ServoConfigCH2);
 
-    ledc_channel.gpio_num = gpio_array[SERVO_IDX_YAW];
-    ledc_channel.channel = static_cast<ledc_channel_t>(SERVO_IDX_YAW);
+    ledc_channel.gpio_num = gpio_array[SERVO_IDX_CH3];
+    ledc_channel.channel = static_cast<ledc_channel_t>(SERVO_IDX_CH3);
     ledc_channel_config(&ledc_channel);
-    SetServoDataPreprocessor(SERVO_IDX_YAW, SERVO_CONFIG_YAW);
+    SetServoDataPreprocessor(SERVO_IDX_CH3, g_ServoConfigCH3);
 }
 
 /**
@@ -141,7 +151,7 @@ void ServoGroup::SetAngle(int servoIdx, float theta)
     bool isReverse = m_servoDataPreprocessorMap[servoIdx].isReverse;
 
     theta = isReverse ? 180 - theta : theta;
-    theta = ((theta - offset) - zeroPoint) * scale + zeroPoint;
+    theta = (theta - zeroPoint) * scale + zeroPoint -offset;
 
     if (theta > maxAngle) {
         theta = maxAngle;
