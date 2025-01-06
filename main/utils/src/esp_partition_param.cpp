@@ -1,5 +1,15 @@
 #include "esp_partition_param.h"
 
+namespace {
+constexpr const char* PARTITION_NAME = "config";
+}
+
+EspPartitionParam &EspPartitionParam::GetInstance()
+{
+    static EspPartitionParam instance(PARTITION_NAME);
+    return instance;
+}
+
 EspPartitionParam::EspPartitionParam(const std::string &partitionName) {
     const esp_partition_t *partition = esp_partition_find_first(ESP_PARTITION_TYPE_DATA, ESP_PARTITION_SUBTYPE_ANY, partitionName.c_str());
     if (partition == NULL) {

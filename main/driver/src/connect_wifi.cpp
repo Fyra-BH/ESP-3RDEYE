@@ -121,9 +121,8 @@ void wifi_init_sta(void)
                                                         &instance_got_ip));
     wifi_config_t wifi_config;
     memset(&wifi_config, 0, sizeof(wifi_config));
-    EspPartitionParam espParam("config");
-    std::string ssid =  espParam.GetStringParam("ESP_WIFI_SSID", EXAMPLE_ESP_WIFI_SSID);
-    std::string password =  espParam.GetStringParam("ESP_WIFI_PASSWORD", EXAMPLE_ESP_WIFI_PASS);
+    std::string ssid =  EspPartitionParam::GetInstance().GetStringParam("ESP_WIFI_SSID", EXAMPLE_ESP_WIFI_SSID);
+    std::string password =  EspPartitionParam::GetInstance().GetStringParam("ESP_WIFI_PASSWORD", EXAMPLE_ESP_WIFI_PASS);
     memcpy(wifi_config.sta.ssid, ssid.c_str(), strlen(ssid.c_str()));
     ESP_LOGI(TAG, "strlen(ssid.c_str()): %d", strlen(ssid.c_str()));
     ESP_LOGI(TAG, "ssid: %s", wifi_config.sta.ssid);

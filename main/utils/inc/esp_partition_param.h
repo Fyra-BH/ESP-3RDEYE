@@ -11,13 +11,14 @@
 
 class EspPartitionParam {
 public:
-    EspPartitionParam(const std::string &partitionName);
+    static EspPartitionParam &GetInstance(); // Singleton
     int GetIntParam(const std::string &key, int defaultValue);
     float GetFloatParam(const std::string &key, float defaultValue);
     bool GetBoolParam(const std::string &key, bool defaultValue);
     std::string GetStringParam(const std::string &key, const std::string &defaultValue);
 
 private:
+    EspPartitionParam(const std::string &partitionName);
     std::map<std::string, std::string> params;
 };
 

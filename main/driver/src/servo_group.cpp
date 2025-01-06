@@ -39,8 +39,6 @@ constexpr bool SERVO_IS_REVERSE_CH3 = true;
 
 namespace {
 
-EspPartitionParam espParam("config");
-
 ServoDataConfig g_ServoConfigCH1;
 ServoDataConfig g_ServoConfigCH2;
 ServoDataConfig g_ServoConfigCH3;
@@ -49,36 +47,36 @@ std::array<int, SERVO_NUM> g_ServoPwmGpios;
 void SetUpServoDataPreprocessor()
 {
     g_ServoConfigCH1 = {
-        espParam.GetFloatParam("SERVO_SCALE_CH1", SERVO_SCALE_CH1),
-        espParam.GetFloatParam("SERVO_OFFSET_CH1", SERVO_OFFSET_CH1),
-        espParam.GetFloatParam("SERVO_ZEROPOINT_CH1", SERVO_ZEROPOINT_CH1),
-        espParam.GetFloatParam("SERVO_MIN_ANGLE_CH1", SERVO_MIN_ANGLE_CH1),
-        espParam.GetFloatParam("SERVO_MAX_ANGLE_CH1", SERVO_MAX_ANGLE_CH1),
-        espParam.GetBoolParam("SERVO_IS_REVERSE_CH1", SERVO_IS_REVERSE_CH1)
+        EspPartitionParam::GetInstance().GetFloatParam("SERVO_SCALE_CH1", SERVO_SCALE_CH1),
+        EspPartitionParam::GetInstance().GetFloatParam("SERVO_OFFSET_CH1", SERVO_OFFSET_CH1),
+        EspPartitionParam::GetInstance().GetFloatParam("SERVO_ZEROPOINT_CH1", SERVO_ZEROPOINT_CH1),
+        EspPartitionParam::GetInstance().GetFloatParam("SERVO_MIN_ANGLE_CH1", SERVO_MIN_ANGLE_CH1),
+        EspPartitionParam::GetInstance().GetFloatParam("SERVO_MAX_ANGLE_CH1", SERVO_MAX_ANGLE_CH1),
+        EspPartitionParam::GetInstance().GetBoolParam("SERVO_IS_REVERSE_CH1", SERVO_IS_REVERSE_CH1)
     };
 
     g_ServoConfigCH2 = {
-        espParam.GetFloatParam("SERVO_SCALE_CH2", SERVO_SCALE_CH2),
-        espParam.GetFloatParam("SERVO_OFFSET_CH2", SERVO_OFFSET_CH2),
-        espParam.GetFloatParam("SERVO_ZEROPOINT_CH2", SERVO_ZEROPOINT_CH2),
-        espParam.GetFloatParam("SERVO_MIN_ANGLE_CH2", SERVO_MIN_ANGLE_CH2),
-        espParam.GetFloatParam("SERVO_MAX_ANGLE_CH2", SERVO_MAX_ANGLE_CH2),
-        espParam.GetBoolParam("SERVO_IS_REVERSE_CH2", SERVO_IS_REVERSE_CH2)
+        EspPartitionParam::GetInstance().GetFloatParam("SERVO_SCALE_CH2", SERVO_SCALE_CH2),
+        EspPartitionParam::GetInstance().GetFloatParam("SERVO_OFFSET_CH2", SERVO_OFFSET_CH2),
+        EspPartitionParam::GetInstance().GetFloatParam("SERVO_ZEROPOINT_CH2", SERVO_ZEROPOINT_CH2),
+        EspPartitionParam::GetInstance().GetFloatParam("SERVO_MIN_ANGLE_CH2", SERVO_MIN_ANGLE_CH2),
+        EspPartitionParam::GetInstance().GetFloatParam("SERVO_MAX_ANGLE_CH2", SERVO_MAX_ANGLE_CH2),
+        EspPartitionParam::GetInstance().GetBoolParam("SERVO_IS_REVERSE_CH2", SERVO_IS_REVERSE_CH2)
     };
 
     g_ServoConfigCH3 = {
-        espParam.GetFloatParam("SERVO_SCALE_CH3", SERVO_SCALE_CH3),
-        espParam.GetFloatParam("SERVO_OFFSET_CH3", SERVO_OFFSET_CH3),
-        espParam.GetFloatParam("SERVO_ZEROPOINT_CH3", SERVO_ZEROPOINT_CH3),
-        espParam.GetFloatParam("SERVO_MIN_ANGLE_CH3", SERVO_MIN_ANGLE_CH3),
-        espParam.GetFloatParam("SERVO_MAX_ANGLE_CH3", SERVO_MAX_ANGLE_CH3),
-        espParam.GetBoolParam("SERVO_IS_REVERSE_CH3", SERVO_IS_REVERSE_CH3)
+        EspPartitionParam::GetInstance().GetFloatParam("SERVO_SCALE_CH3", SERVO_SCALE_CH3),
+        EspPartitionParam::GetInstance().GetFloatParam("SERVO_OFFSET_CH3", SERVO_OFFSET_CH3),
+        EspPartitionParam::GetInstance().GetFloatParam("SERVO_ZEROPOINT_CH3", SERVO_ZEROPOINT_CH3),
+        EspPartitionParam::GetInstance().GetFloatParam("SERVO_MIN_ANGLE_CH3", SERVO_MIN_ANGLE_CH3),
+        EspPartitionParam::GetInstance().GetFloatParam("SERVO_MAX_ANGLE_CH3", SERVO_MAX_ANGLE_CH3),
+        EspPartitionParam::GetInstance().GetBoolParam("SERVO_IS_REVERSE_CH3", SERVO_IS_REVERSE_CH3)
     };
 
     g_ServoPwmGpios = {
-        espParam.GetIntParam("SERVO_PULSE_GPIO_CH1", CONFIG_SERVO_PULSE_GPIO_CH1),
-        espParam.GetIntParam("SERVO_PULSE_GPIO_CH2", CONFIG_SERVO_PULSE_GPIO_CH2),
-        espParam.GetIntParam("SERVO_PULSE_GPIO_CH3", CONFIG_SERVO_PULSE_GPIO_CH3)
+        EspPartitionParam::GetInstance().GetIntParam("SERVO_PULSE_GPIO_CH1", CONFIG_SERVO_PULSE_GPIO_CH1),
+        EspPartitionParam::GetInstance().GetIntParam("SERVO_PULSE_GPIO_CH2", CONFIG_SERVO_PULSE_GPIO_CH2),
+        EspPartitionParam::GetInstance().GetIntParam("SERVO_PULSE_GPIO_CH3", CONFIG_SERVO_PULSE_GPIO_CH3)
     };
 }
 
