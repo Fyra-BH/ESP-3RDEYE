@@ -67,20 +67,13 @@ extern "C" void app_main(void)
     connect_wifi();
     LedController::GetInstance().SetColor(0, 0, 50);
     int udpPort = EspPartitionParam("config").GetIntParam("ESP_UDP_PORT", CONFIG_EXAMPLE_PORT);
-    
     EspThreadHelper th;
-    th.AddTask([&] {
+    th.AddTask([&udpPort] {
         while (true) {
             UdpServer UdpServer(udpPort);
-            UdpServer.StartListening();   
+            UdpServer.StartListening();
         }
     }, 8192);
-    
-    th.AddTask([&] {
-        while (true) {
-            th.PrintInfo();
-            std::this_thread::sleep_for(std::chrono::seconds(3));
-        }
-    });
 
+    th.PrintInfo();
 }
