@@ -3,6 +3,8 @@
 #include "sdkconfig.h"
 #include "esp_log.h"
 
+#include "esp_partition_param.h"
+
 static const char *TAG = "led_controller";
 
 LedController &LedController::GetInstance()
@@ -19,7 +21,8 @@ LedController::LedController()
     memset(&strip_config, 0, sizeof(led_strip_config_t));
     memset(&rmt_config, 0, sizeof(led_strip_rmt_config_t));
 
-    strip_config.strip_gpio_num = CONFIG_BLINK_GPIO;
+    strip_config.strip_gpio_num = 
+        EspPartitionParam::GetInstance().GetIntParam("LED_GPIO", CONFIG_BLINK_GPIO);
     strip_config.max_leds = 1; // at least one LED on board
 
     rmt_config.resolution_hz = 10 * 1000 * 1000; // 10MHz
