@@ -1,7 +1,10 @@
 #include "data_proc_obj.h"
 #include "servo_group.h"
 #include <cstring>
+#include <sstream>
+#include <algorithm>
 #include "esp_log.h"
+#include "var_hacker.hpp"
 
 static const char* TAG = "DataProcObj";
 
@@ -12,6 +15,9 @@ std::string DataProcObj::ProcessMessage(const std::string& message)
     }
     if (message.starts_with("CH1")) {
         return HandleMoveRequest(message);
+    }
+    if (message.starts_with("VH:")) {
+        return HandleVarHackerRequest(message);
     }
     return message;
 }
@@ -39,4 +45,47 @@ std::string DataProcObj::HandleMoveRequest(const std::string& message)
     ServoGroup::GetInstance().SetAngle((int)SERVO_IDX_CH2, theta[1]);
     ServoGroup::GetInstance().SetAngle((int)SERVO_IDX_CH3, theta[2] - (theta[1] - 90.0f) * 0.8f); // TODO: magic number
     return str;
+}
+
+// message format: VH:operation,var_name,[value]
+std::string DataProcObj::HandleVarHackerRequest(const std::string& message)
+{
+    std::string msg(message);
+    size_t pos = message.find('\n');  // 查找第一个换行符的位置
+    if (pos != std::string::npos) {
+        msg = message.substr(0, pos);  // 截取从开始到换行符之前的部分
+    }
+    std::stringstream ss(msg);
+    std::string operation;
+    std::string var_name;
+    std::string value;
+    std::getline(ss, operation, ',');
+    std::getline(ss, var_name, ',');
+    std::getline(ss, value, ',');
+
+    operation = std::string(operation.c_str());
+    ESP_LOGI(TAG, "VarHacker request received, operation: %s, var_name: %s, value: %s",
+        operation.c_str(), var_name.c_str(), value.c_str());
+
+    std::string retMsg;
+
+    if (operation == "VH:get") {
+        auto data = VH::VarHacker::GetInstance().GetVar(var_name);
+        if (data == nullptr) {
+            return "VH:get null";
+        }
+        std::string res = VH::GetVarInString(data);
+        retMsg = "VH:get," + var_name + "," + res;
+        return res;
+    }
+    if (operation == "VH:showall") {
+        auto varNames = VH::VarHacker::GetInstance().GetVarNames();
+        for (auto &name : varNames) {
+            auto data = VH::VarHacker::GetInstance().GetVar(name);
+            std::string res = VH::GetVarInString(data);
+            retMsg += name + ":" + res + "\n";
+        }
+    }
+    ESP_LOGI(TAG,"%s", retMsg.c_str());
+    return retMsg;
 }

@@ -10,32 +10,33 @@
 #include "freertos/queue.h"
 
 #include "esp_partition_param.h"
+#include "var_hacker.hpp"
 
 static const char *TAG = "SERVO";
 
 constexpr int SERVO_NUM = 3;
 
 // 舵机数据预处理配置
-constexpr float SERVO_SCALE_CH1 = 1.0f / 3.0f;
-constexpr float SERVO_OFFSET_CH1 = 0.0f;
-constexpr float SERVO_ZEROPOINT_CH1 = 90.0f;
-constexpr float SERVO_MIN_ANGLE_CH1 = 45.0f;
-constexpr float SERVO_MAX_ANGLE_CH1 = 135.0f;
-constexpr bool SERVO_IS_REVERSE_CH1 = true;
+float SERVO_SCALE_CH1 = 1.0f / 3.0f;
+float SERVO_OFFSET_CH1 = 0.0f;
+float SERVO_ZEROPOINT_CH1 = 90.0f;
+float SERVO_MIN_ANGLE_CH1 = 45.0f;
+float SERVO_MAX_ANGLE_CH1 = 135.0f;
+bool SERVO_IS_REVERSE_CH1 = true;
 
-constexpr float SERVO_SCALE_CH2 = 1.0f / 3.0;
-constexpr float SERVO_OFFSET_CH2 = 40.0f;
-constexpr float SERVO_ZEROPOINT_CH2 = 60.0f;
-constexpr float SERVO_MIN_ANGLE_CH2 = 0.0f;
-constexpr float SERVO_MAX_ANGLE_CH2 = 90.0f;
-constexpr bool SERVO_IS_REVERSE_CH2 = true;
+float SERVO_SCALE_CH2 = 1.0f / 3.0;
+float SERVO_OFFSET_CH2 = 40.0f;
+float SERVO_ZEROPOINT_CH2 = 60.0f;
+float SERVO_MIN_ANGLE_CH2 = 0.0f;
+float SERVO_MAX_ANGLE_CH2 = 90.0f;
+bool SERVO_IS_REVERSE_CH2 = true;
 
-constexpr float SERVO_SCALE_CH3 = 1.0f / 3.0f;
-constexpr float SERVO_OFFSET_CH3 = -40.0f;
-constexpr float SERVO_ZEROPOINT_CH3 = 120.0f;
-constexpr float SERVO_MIN_ANGLE_CH3 = 120.0f;
-constexpr float SERVO_MAX_ANGLE_CH3 = 180.0f;
-constexpr bool SERVO_IS_REVERSE_CH3 = true;
+float SERVO_SCALE_CH3 = 1.0f / 3.0f;
+float SERVO_OFFSET_CH3 = -40.0f;
+float SERVO_ZEROPOINT_CH3 = 120.0f;
+float SERVO_MIN_ANGLE_CH3 = 120.0f;
+float SERVO_MAX_ANGLE_CH3 = 180.0f;
+bool SERVO_IS_REVERSE_CH3 = true;
 
 namespace {
 
@@ -80,6 +81,27 @@ void SetUpServoDataPreprocessor()
     };
 }
 
+void SetUpServoVarHacker()
+{
+    VH::VarHacker::GetInstance().RegisterVar("CH1.scale", &g_ServoConfigCH1.scale);
+    VH::VarHacker::GetInstance().RegisterVar("CH1.offset", &g_ServoConfigCH1.offset);
+    VH::VarHacker::GetInstance().RegisterVar("CH1.zeroPoint", &g_ServoConfigCH1.zeroPoint);
+    VH::VarHacker::GetInstance().RegisterVar("CH1.minAngle", &g_ServoConfigCH1.minAngle);
+    VH::VarHacker::GetInstance().RegisterVar("CH1.maxAngle", &g_ServoConfigCH1.maxAngle);
+
+    VH::VarHacker::GetInstance().RegisterVar("CH2.scale", &g_ServoConfigCH2.scale);
+    VH::VarHacker::GetInstance().RegisterVar("CH2.offset", &g_ServoConfigCH2.offset);
+    VH::VarHacker::GetInstance().RegisterVar("CH2.zeroPoint", &g_ServoConfigCH2.zeroPoint);
+    VH::VarHacker::GetInstance().RegisterVar("CH2.minAngle", &g_ServoConfigCH2.minAngle);
+    VH::VarHacker::GetInstance().RegisterVar("CH2.maxAngle", &g_ServoConfigCH2.maxAngle);
+
+    VH::VarHacker::GetInstance().RegisterVar("CH3.scale", &g_ServoConfigCH3.scale);
+    VH::VarHacker::GetInstance().RegisterVar("CH3.offset", &g_ServoConfigCH3.offset);
+    VH::VarHacker::GetInstance().RegisterVar("CH3.zeroPoint", &g_ServoConfigCH3.zeroPoint);
+    VH::VarHacker::GetInstance().RegisterVar("CH3.minAngle", &g_ServoConfigCH3.minAngle);
+    VH::VarHacker::GetInstance().RegisterVar("CH3.maxAngle", &g_ServoConfigCH3.maxAngle);
+}
+
 }
 
 
@@ -92,6 +114,7 @@ ServoGroup &ServoGroup::GetInstance()
 ServoGroup::ServoGroup()
 {
     SetUpServoDataPreprocessor();
+    SetUpServoVarHacker();
     /*########################### PWM #################################*/
     // 对于ESP32C3，使用LEDC驱动PWM
     // Prepare and then apply the LEDC PWM timer configuration

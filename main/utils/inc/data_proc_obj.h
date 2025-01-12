@@ -12,6 +12,7 @@ public:
 private:
     std::string HandleDiscoveryRequest(const std::string& message);
     std::string HandleMoveRequest(const std::string& message);
+    std::string HandleVarHackerRequest(const std::string& message);
 
 private:
     ServoInputAdapter m_servoInputAdapter;
