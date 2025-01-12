@@ -10,6 +10,9 @@
 
 
 namespace VH{
+
+class VarHacker;
+
 struct DataTarget {
     void *ptr;
     const char *type;
@@ -23,21 +26,6 @@ const auto SUPORTED_TYPES = {
     typeid(float).name(),
     typeid(bool).name(),
 };
-
-std::string GetVarInString(std::shared_ptr<DataTarget> target)
-{
-    std::string str;
-    if (std::strcmp(target->type, typeid(int).name()) == 0) {
-        str = std::to_string(*(int*)target->ptr);
-    } else if (std::strcmp(target->type, typeid(float).name()) == 0) {
-        str = std::to_string(*(float*)target->ptr);
-    } else if (std::strcmp(target->type, typeid(bool).name()) == 0) {
-        str = *(bool*)target->ptr? "true" : "false";
-    } else {
-        str = "Unsupported type";
-    }
-    return str;
-}
 } // namespace
 
 /**
@@ -99,6 +87,38 @@ public:
         return names;
     }
 
+    std::string GetVarInString(std::shared_ptr<DataTarget> target)
+    {
+        std::string str;
+        if (std::strcmp(target->type, typeid(int).name()) == 0) {
+            str = std::to_string(*(int*)target->ptr);
+        } else if (std::strcmp(target->type, typeid(float).name()) == 0) {
+            str = std::to_string(*(float*)target->ptr);
+        } else if (std::strcmp(target->type, typeid(bool).name()) == 0) {
+            str = *(bool*)target->ptr? "true" : "false";
+        } else {
+            str = "Unsupported type";
+        }
+        return str;
+    }
+
+    bool SetVarInString(std::string varName, std::string value)
+    {
+        std::shared_ptr<DataTarget> target = m_vars[varName];
+        if (target == nullptr) {
+            return false;
+        }
+        if (std::strcmp(target->type, typeid(int).name()) == 0) {
+            *(int*)target->ptr = std::stoi(value);
+        } else if (std::strcmp(target->type, typeid(float).name()) == 0) {
+            *(float*)target->ptr = std::stof(value);
+        } else if (std::strcmp(target->type, typeid(bool).name()) == 0) {
+            *(bool*)target->ptr = value == "true"? true : false;
+        } else {
+            return false;
+        }
+        return true;
+    }
     ~VarHacker(){}
 
 private:

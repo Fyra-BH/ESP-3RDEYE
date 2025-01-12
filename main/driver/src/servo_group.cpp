@@ -88,18 +88,21 @@ void SetUpServoVarHacker()
     VH::VarHacker::GetInstance().RegisterVar("CH1.zeroPoint", &g_ServoConfigCH1.zeroPoint);
     VH::VarHacker::GetInstance().RegisterVar("CH1.minAngle", &g_ServoConfigCH1.minAngle);
     VH::VarHacker::GetInstance().RegisterVar("CH1.maxAngle", &g_ServoConfigCH1.maxAngle);
+    VH::VarHacker::GetInstance().RegisterVar("CH1.isReverse", &g_ServoConfigCH1.isReverse);
 
     VH::VarHacker::GetInstance().RegisterVar("CH2.scale", &g_ServoConfigCH2.scale);
     VH::VarHacker::GetInstance().RegisterVar("CH2.offset", &g_ServoConfigCH2.offset);
     VH::VarHacker::GetInstance().RegisterVar("CH2.zeroPoint", &g_ServoConfigCH2.zeroPoint);
     VH::VarHacker::GetInstance().RegisterVar("CH2.minAngle", &g_ServoConfigCH2.minAngle);
     VH::VarHacker::GetInstance().RegisterVar("CH2.maxAngle", &g_ServoConfigCH2.maxAngle);
+    VH::VarHacker::GetInstance().RegisterVar("CH2.isReverse", &g_ServoConfigCH2.isReverse);
 
     VH::VarHacker::GetInstance().RegisterVar("CH3.scale", &g_ServoConfigCH3.scale);
     VH::VarHacker::GetInstance().RegisterVar("CH3.offset", &g_ServoConfigCH3.offset);
     VH::VarHacker::GetInstance().RegisterVar("CH3.zeroPoint", &g_ServoConfigCH3.zeroPoint);
     VH::VarHacker::GetInstance().RegisterVar("CH3.minAngle", &g_ServoConfigCH3.minAngle);
     VH::VarHacker::GetInstance().RegisterVar("CH3.maxAngle", &g_ServoConfigCH3.maxAngle);
+    VH::VarHacker::GetInstance().RegisterVar("CH3.isReverse", &g_ServoConfigCH3.isReverse);
 }
 
 }
@@ -141,17 +144,17 @@ ServoGroup::ServoGroup()
     ledc_channel.gpio_num = gpio_array[SERVO_IDX_CH1];
     ledc_channel.channel = static_cast<ledc_channel_t>(SERVO_IDX_CH1);
     ledc_channel_config(&ledc_channel);
-    SetServoDataPreprocessor(SERVO_IDX_CH1, g_ServoConfigCH1);
+    SetServoDataPreprocessor(SERVO_IDX_CH1, &g_ServoConfigCH1);
 
     ledc_channel.gpio_num = gpio_array[SERVO_IDX_CH2];
     ledc_channel.channel = static_cast<ledc_channel_t>(SERVO_IDX_CH2);
     ledc_channel_config(&ledc_channel);
-    SetServoDataPreprocessor(SERVO_IDX_CH2, g_ServoConfigCH2);
+    SetServoDataPreprocessor(SERVO_IDX_CH2, &g_ServoConfigCH2);
 
     ledc_channel.gpio_num = gpio_array[SERVO_IDX_CH3];
     ledc_channel.channel = static_cast<ledc_channel_t>(SERVO_IDX_CH3);
     ledc_channel_config(&ledc_channel);
-    SetServoDataPreprocessor(SERVO_IDX_CH3, g_ServoConfigCH3);
+    SetServoDataPreprocessor(SERVO_IDX_CH3, &g_ServoConfigCH3);
 }
 
 /**
@@ -166,12 +169,12 @@ void ServoGroup::SetAngle(int servoIdx, float theta)
         ESP_LOGE(TAG, "servoIdx out of range");
         return;
     }
-    float scale = m_servoDataPreprocessorMap[servoIdx].scale;
-    float offset = m_servoDataPreprocessorMap[servoIdx].offset;
-    float zeroPoint = m_servoDataPreprocessorMap[servoIdx].zeroPoint;
-    float minAngle = m_servoDataPreprocessorMap[servoIdx].minAngle;
-    float maxAngle = m_servoDataPreprocessorMap[servoIdx].maxAngle;
-    bool isReverse = m_servoDataPreprocessorMap[servoIdx].isReverse;
+    float scale = m_servoDataPreprocessorMap[servoIdx]->scale;
+    float offset = m_servoDataPreprocessorMap[servoIdx]->offset;
+    float zeroPoint = m_servoDataPreprocessorMap[servoIdx]->zeroPoint;
+    float minAngle = m_servoDataPreprocessorMap[servoIdx]->minAngle;
+    float maxAngle = m_servoDataPreprocessorMap[servoIdx]->maxAngle;
+    bool isReverse = m_servoDataPreprocessorMap[servoIdx]->isReverse;
 
     theta = isReverse ? 180 - theta : theta;
     theta = (theta - zeroPoint) * scale + zeroPoint - offset;
@@ -195,9 +198,9 @@ void ServoGroup::SetAngle(int servoIdx, float theta)
  * @param servoIdx 舵机索引
  * @param servoDataPreprocessor 舵机预处理配置
  */
-void ServoGroup::SetServoDataPreprocessor(int servoIdx, const ServoDataConfig &servoDataPreprocessor)
+void ServoGroup::SetServoDataPreprocessor(int servoIdx, ServoDataConfig *servoDataPreprocessor)
 {
-    m_servoDataPreprocessorMap.insert({servoIdx, servoDataPreprocessor});
+    m_servoDataPreprocessorMap[servoIdx] = servoDataPreprocessor;
 }
 
 /**

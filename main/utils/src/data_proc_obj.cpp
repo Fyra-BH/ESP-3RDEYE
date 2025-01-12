@@ -47,7 +47,7 @@ std::string DataProcObj::HandleMoveRequest(const std::string& message)
     return str;
 }
 
-// message format: VH:operation,var_name,[value]
+// message format: VH:operation,varName,[value]
 std::string DataProcObj::HandleVarHackerRequest(const std::string& message)
 {
     std::string msg(message);
@@ -57,34 +57,42 @@ std::string DataProcObj::HandleVarHackerRequest(const std::string& message)
     }
     std::stringstream ss(msg);
     std::string operation;
-    std::string var_name;
+    std::string varName;
     std::string value;
     std::getline(ss, operation, ',');
-    std::getline(ss, var_name, ',');
+    std::getline(ss, varName, ',');
     std::getline(ss, value, ',');
 
     operation = std::string(operation.c_str());
-    ESP_LOGI(TAG, "VarHacker request received, operation: %s, var_name: %s, value: %s",
-        operation.c_str(), var_name.c_str(), value.c_str());
+    ESP_LOGI(TAG, "VarHacker request received, operation: %s, varName: %s, value: %s",
+        operation.c_str(), varName.c_str(), value.c_str());
 
     std::string retMsg;
 
     if (operation == "VH:get") {
-        auto data = VH::VarHacker::GetInstance().GetVar(var_name);
+        auto data = VH::VarHacker::GetInstance().GetVar(varName);
         if (data == nullptr) {
             return "VH:get null";
         }
-        std::string res = VH::GetVarInString(data);
-        retMsg = "VH:get," + var_name + "," + res;
+        std::string res = VH::VarHacker::GetInstance().GetVarInString(data);
+        retMsg = "VH:get," + varName + "," + res;
         return res;
     }
     if (operation == "VH:showall") {
         auto varNames = VH::VarHacker::GetInstance().GetVarNames();
         for (auto &name : varNames) {
             auto data = VH::VarHacker::GetInstance().GetVar(name);
-            std::string res = VH::GetVarInString(data);
+            std::string res = VH::VarHacker::GetInstance().GetVarInString(data);
             retMsg += name + ":" + res + "\n";
         }
+    }
+    if (operation == "VH:set") {
+        auto data = VH::VarHacker::GetInstance().GetVar(varName);
+        if (data == nullptr) {
+            return "VH:set null";
+        }
+        VH::VarHacker::GetInstance().SetVarInString(varName, value);
+        retMsg = "VH:set," + varName + "," + value;
     }
     ESP_LOGI(TAG,"%s", retMsg.c_str());
     return retMsg;
