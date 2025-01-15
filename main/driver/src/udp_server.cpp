@@ -75,7 +75,6 @@ void UdpServer::StartListening()
             continue;
         }
         inet_ntoa_r(((struct sockaddr_in *)&source_addr)->sin_addr, addr_str, sizeof(addr_str) - 1);
-        ESP_LOGI(TAG, "Received %d bytes from %s:", len, addr_str);
         m_rxBuff[std::min(RX_BUF_SIZE - 1, len)] = 0; // Null-terminate whatever we received and treat like a string...
         std::string message = m_dataProc->ProcessMessage(m_rxBuff);
         int err = sendto(m_sock, message.c_str(), message.length(), 0, (struct sockaddr *)&source_addr, sizeof(source_addr));
