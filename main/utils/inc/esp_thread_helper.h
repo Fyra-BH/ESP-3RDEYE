@@ -5,8 +5,9 @@
 #include <vector>
 #include <functional>
 #include <string>
-
-#include "esp_pthread.h"
+#include <esp_pthread.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
 class EspThreadHelper
 {

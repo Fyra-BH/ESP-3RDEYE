@@ -191,6 +191,14 @@ void ServoGroup::SetAngle(int servoIdx, float theta)
     ledc_update_duty(LEDC_MODE, static_cast<ledc_channel_t>(servoIdx));
 }
 
+void ServoGroup::SetAngleSmooth(int servoIdx, float theta, float duration)
+{
+    static std::map<int, int> lastPulseWidthMap;
+    float angleStart = lastPulseWidthMap[servoIdx];
+    float angleEnd = theta;
+    FiveTimesInterpolation(servoIdx, angleStart, angleEnd, duration);
+    lastPulseWidthMap[servoIdx] = theta;
+}
 
 /**
  * @brief 设置舵机的预处理参数
@@ -213,8 +221,8 @@ void ServoGroup::SetServoDataPreprocessor(int servoIdx, ServoDataConfig *servoDa
  */
 void ServoGroup::FiveTimesInterpolation(int servoIdx, float angleStart, float angleEnd, float duration)
 {
-    // 定义插值时间总长度 (us)，可以根据需求调整
-    float T = duration * 1000.0 * 1000.0; // 插值时间为2秒 (2000_000 us)
+    // 定义插值时间总长度 (从s转换为ms)，可以根据需求调整
+    float T = duration * 1000.0;
     int steps = 50;   // 插值步数，越多越平滑
     float dt = T / steps;
 
@@ -233,6 +241,6 @@ void ServoGroup::FiveTimesInterpolation(int servoIdx, float angleStart, float an
         
         // 将插值角度设置到舵机
         SetAngle(servoIdx, theta);
-        std::this_thread::sleep_for(std::chrono::microseconds(static_cast<int>(dt)));
+        std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<int>(dt)));
     }
 }

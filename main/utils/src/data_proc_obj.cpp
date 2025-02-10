@@ -5,6 +5,7 @@
 #include <algorithm>
 #include "esp_log.h"
 #include "var_hacker.hpp"
+#include "esp_thread_helper.h"
 
 static const char* TAG = "DataProcObj";
 
@@ -15,6 +16,9 @@ std::string DataProcObj::ProcessMessage(const std::string& message)
     }
     if (message.starts_with("CH1")) {
         return HandleMoveRequest(message);
+    }
+    if (message.starts_with("SMOOTH")) {
+        return HandleMoveRequestSmooth(message);
     }
     if (message.starts_with("VH:")) {
         return HandleVarHackerRequest(message);
@@ -43,11 +47,33 @@ std::string DataProcObj::HandleMoveRequest(const std::string& message)
     ESP_LOGI(TAG, "Move request response: %s", str.c_str());
     ServoGroup::GetInstance().SetAngle((int)SERVO_IDX_CH1, theta[0]);
     ServoGroup::GetInstance().SetAngle((int)SERVO_IDX_CH2, theta[1]);
-    ServoGroup::GetInstance().SetAngle((int)SERVO_IDX_CH3, theta[2] - (theta[1] - 90.0f) * 0.8f); // TODO: magic number
+    const float affectAngle = (theta[1] - 90.0f) * 0.8f;
+    ServoGroup::GetInstance().SetAngle((int)SERVO_IDX_CH3, theta[2] - affectAngle); // TODO: magic number
     return str;
 }
 
-// message format: VH:operation,varName,[value]
+std::string DataProcObj::HandleMoveRequestSmooth(const std::string& message)
+{
+    int pulseWidth[3];
+    float theta[3];
+    int durationMs = 0;
+    sscanf(message.c_str(), "SMOOTH:CH1:%dCH2:%dCH3:%dMS:%d", &pulseWidth[0], &pulseWidth[1], &pulseWidth[2], &durationMs);
+    float duration = durationMs / 1000.0f;
+
+    // ESP_LOGI(TAG, "Move request received, pulse width: CH1:%d, CH2:%d, CH3:%d", pulseWidth[0], pulseWidth[1], pulseWidth[2]);
+    for (int i = 0; i < 3; i++) {
+        theta[i] = m_servoInputAdapter.PulseWidth2Angle(pulseWidth[i]);
+    }
+    auto str = "CH1:" + std::to_string(theta[0]) + ",CH2:" + std::to_string(theta[1]) + ",CH3:" + std::to_string(theta[2]);
+    theta[3] = theta[2] - (theta[1] - 90.0f) * 0.8f; // TODO: magic number (90.0f is the center angle)
+    ESP_LOGI(TAG, "Move request response: %s", str.c_str());
+    ServoGroup::GetInstance().SetAngleSmooth((int)SERVO_IDX_CH1, theta[0], duration);
+    ServoGroup::GetInstance().SetAngleSmooth((int)SERVO_IDX_CH2, theta[1], duration);
+    ServoGroup::GetInstance().SetAngleSmooth((int)SERVO_IDX_CH3, theta[2], duration);
+    return str;
+}
+
+// message format: VH:operation,varName, duration,[value]
 std::string DataProcObj::HandleVarHackerRequest(const std::string& message)
 {
     std::string msg(message);

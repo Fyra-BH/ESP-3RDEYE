@@ -26,6 +26,7 @@
    - 根据需要，设置合适的 UDP 端口号.
 
 5. **执行烧录和配置**：
+   - 运行pack.cmd(依赖nuitka).
    - 双击 `flash_firmware.exe` 工具，开始烧录固件.
    - 烧录完成后，双击 `write_config.exe` 工具，更新设备配置.
 
