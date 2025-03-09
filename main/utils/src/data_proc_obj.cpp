@@ -67,9 +67,17 @@ std::string DataProcObj::HandleMoveRequestSmooth(const std::string& message)
     auto str = "CH1:" + std::to_string(theta[0]) + ",CH2:" + std::to_string(theta[1]) + ",CH3:" + std::to_string(theta[2]);
     theta[3] = theta[2] - (theta[1] - 90.0f) * 0.8f; // TODO: magic number (90.0f is the center angle)
     ESP_LOGI(TAG, "Move request response: %s", str.c_str());
-    ServoGroup::GetInstance().SetAngleSmooth((int)SERVO_IDX_CH1, theta[0], duration);
-    ServoGroup::GetInstance().SetAngleSmooth((int)SERVO_IDX_CH2, theta[1], duration);
-    ServoGroup::GetInstance().SetAngleSmooth((int)SERVO_IDX_CH3, theta[2], duration);
+
+    static float lastPulseWidth[SERVO_MAX_NUM] = {0.0};
+    ActionInstruction instruction {
+        {lastPulseWidth[SERVO_IDX_CH1], theta[SERVO_IDX_CH1]},
+        {lastPulseWidth[SERVO_IDX_CH2], theta[SERVO_IDX_CH2]},
+        {lastPulseWidth[SERVO_IDX_CH3], theta[SERVO_IDX_CH3]}
+    };
+    ServoGroup::GetInstance().MultiServoInterpolation(instruction, duration);
+    for (int i = 0; i < SERVO_MAX_NUM; i++) {
+        lastPulseWidth[i] = theta[i]; 
+    }
     return str;
 }
 

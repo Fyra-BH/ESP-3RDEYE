@@ -191,13 +191,12 @@ void ServoGroup::SetAngle(int servoIdx, float theta)
     ledc_update_duty(LEDC_MODE, static_cast<ledc_channel_t>(servoIdx));
 }
 
-void ServoGroup::SetAngleSmooth(int servoIdx, float theta, float duration)
+void ServoGroup::SetAngleSmooth(const ActionInstruction &instruction, float duration)
 {
-    static std::map<int, int> lastPulseWidthMap;
-    float angleStart = lastPulseWidthMap[servoIdx];
-    float angleEnd = theta;
-    FiveTimesInterpolation(servoIdx, angleStart, angleEnd, duration);
-    lastPulseWidthMap[servoIdx] = theta;
+    // float angleStart = lastPulseWidthMap[servoIdx];
+    // float angleEnd = theta;
+    // FiveTimesInterpolation(servoIdx, angleStart, angleEnd, duration);
+    // lastPulseWidthMap[servoIdx] = theta;
 }
 
 /**
@@ -241,6 +240,64 @@ void ServoGroup::FiveTimesInterpolation(int servoIdx, float angleStart, float an
         
         // 将插值角度设置到舵机
         SetAngle(servoIdx, theta);
+        std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<int>(dt)));
+    }
+}
+
+void ServoGroup::MultiServoInterpolation(
+    const ActionInstruction& instruction,
+    float duration)
+{
+    // 时间参数计算
+    const float T = duration * 1000.0f;  // 总时长（毫秒）
+    const int steps = 50;                // 插值步数
+    const float dt = T / steps;          // 时间间隔
+
+    // 运动轨迹参数容器
+    struct TrajectoryParams {
+        float a0, a3, a4, a5;
+        bool active = false;  // 标记是否需要运动
+    };
+    
+    std::array<TrajectoryParams, SERVO_MAX_NUM> params;
+
+    // 预计算各通道参数
+    for (int ch = 0; ch < SERVO_MAX_NUM; ++ch) {
+        auto&& [start, end] = instruction[ch];
+        
+        // 跳过无效指令（起点终点相同）
+        if (std::abs(start - end) < 1e-6) {
+            params[ch].active = false;
+            continue;
+        }
+
+        const float delta = end - start;
+        params[ch] = {
+            start,                           // a0
+            10 * delta / (T*T*T),           // a3
+            -15 * delta / (T*T*T*T),        // a4
+            6 * delta / (T*T*T*T*T),        // a5
+            true                            // active
+        };
+    }
+
+    // 运动执行循环
+    for (int step = 0; step <= steps; ++step) {
+        const float t = step * dt;
+        
+        // 并行更新所有有效舵机
+        for (int ch = 0; ch < SERVO_MAX_NUM; ++ch) {
+            if (!params[ch].active) continue;
+
+            const auto& p = params[ch];
+            const float theta = p.a0 
+                + p.a3 * t*t*t 
+                + p.a4 * t*t*t*t 
+                + p.a5 * t*t*t*t*t;
+            
+            SetAngle(ch, theta);  // 直接使用枚举索引
+        }
+        // 精确时间控制
         std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<int>(dt)));
     }
 }

@@ -15,18 +15,21 @@ enum ServoIdx : int {
     SERVO_IDX_CH1 = 0,
     SERVO_IDX_CH2 = 1,
     SERVO_IDX_CH3 = 2,
+    SERVO_MAX_NUM = 3
 };
 
 using AngleLimits = std::pair<float, float>;
+using ActionInstruction = std::pair<float, float>[SERVO_MAX_NUM];
 
 class ServoGroup
 {
 public:
     static ServoGroup &GetInstance(); // Singleton
     void SetAngle(int servoIdx, float theta);
-    void SetAngleSmooth(int servoIdx, float theta, float duration);
+    void SetAngleSmooth(const ActionInstruction &instruction, float duration);
     void SetServoDataPreprocessor(int servoIdx, ServoDataConfig *servoDataPreprocessor);
     void FiveTimesInterpolation(int servoIdx, float angleStart, float angleEnd, float duration);
+    void MultiServoInterpolation(const ActionInstruction &instruction, float duration);
 private:
     ServoGroup();
     std::map<int, ServoDataConfig*> m_servoDataPreprocessorMap;
