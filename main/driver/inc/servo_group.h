@@ -26,7 +26,6 @@ class ServoGroup
 public:
     static ServoGroup &GetInstance(); // Singleton
     void SetAngle(int servoIdx, float theta);
-    void SetAngleSmooth(const ActionInstruction &instruction, float duration);
     void SetServoDataPreprocessor(int servoIdx, ServoDataConfig *servoDataPreprocessor);
     void FiveTimesInterpolation(int servoIdx, float angleStart, float angleEnd, float duration);
     void MultiServoInterpolation(const ActionInstruction &instruction, float duration);

@@ -191,14 +191,6 @@ void ServoGroup::SetAngle(int servoIdx, float theta)
     ledc_update_duty(LEDC_MODE, static_cast<ledc_channel_t>(servoIdx));
 }
 
-void ServoGroup::SetAngleSmooth(const ActionInstruction &instruction, float duration)
-{
-    // float angleStart = lastPulseWidthMap[servoIdx];
-    // float angleEnd = theta;
-    // FiveTimesInterpolation(servoIdx, angleStart, angleEnd, duration);
-    // lastPulseWidthMap[servoIdx] = theta;
-}
-
 /**
  * @brief 设置舵机的预处理参数
  * 
