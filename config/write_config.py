@@ -1,39 +1,44 @@
 import configparser
 import os
 
-# Create a ConfigParser object
-config = configparser.ConfigParser()
+def main():
+    # Create a ConfigParser object
+    config = configparser.ConfigParser()
 
-# Read the configuration file with UTF-8 encoding
-config.read('config.ini', encoding='utf-8')
+    # Read the configuration file with UTF-8 encoding
+    config.read('config.ini', encoding='utf-8')
 
-# Get the Wi-Fi name and password
-wifi_ssid = config.get('DEFAULT', 'ESP_WIFI_SSID')
-wifi_password = config.get('DEFAULT', 'ESP_WIFI_PASSWORD')
+    # Get the Wi-Fi name and password
+    wifi_ssid = config.get('DEFAULT', 'ESP_WIFI_SSID')
+    wifi_password = config.get('DEFAULT', 'ESP_WIFI_PASSWORD')
 
-# Output the read values
-print(f"WiFi SSID: {wifi_ssid}")
-print(f"WiFi Password: {wifi_password}")
+    # Output the read values
+    print(f"WiFi SSID: {wifi_ssid}")
+    print(f"WiFi Password: {wifi_password}")
 
-# Get the COM port
-esp_com_port = config.get('DEFAULT', 'ESP_COM_PORT')
+    # Get the COM port
+    esp_com_port = config.get('DEFAULT', 'ESP_COM_PORT')
 
-# Output the read values
-print(f"ESP COM Port: {esp_com_port}")
+    # Output the read values
+    print(f"ESP COM Port: {esp_com_port}")
 
-# Flash the config
-ESP_TOOL_EXE = os.path.abspath('esptool.exe')
-lines = open('config.ini', 'r', encoding='utf-8').readlines()
-out_lines = []
-for line in lines:
-    if line.startswith('['):
-        continue
-    if line.startswith('#'):
-        continue
-    if line.startswith('ESP_COM_PORT'):
-        continue
-    if line == '\n':
-        continue
-    out_lines.append(line)
-open('config.bin', 'wb').write(''.join(out_lines).encode('utf8') + b'\0')
-os.system(f'{ESP_TOOL_EXE} --chip esp32c3 --port {esp_com_port} write_flash 0x300000 config.bin')
+    # Flash the config
+    ESP_TOOL_EXE = os.path.abspath('esptool.exe')
+    lines = open('config.ini', 'r', encoding='utf-8').readlines()
+    out_lines = []
+    for line in lines:
+        if line.startswith('['):
+            continue
+        if line.startswith('#'):
+            continue
+        if line.startswith('ESP_COM_PORT'):
+            continue
+        if line == '\n':
+            continue
+        out_lines.append(line)
+    open('config.bin', 'wb').write(''.join(out_lines).encode('utf8') + b'\0')
+    os.system(f'{ESP_TOOL_EXE} --chip esp32c3 --port {esp_com_port} write_flash 0x300000 config.bin')
+
+
+if __name__ == '__main__':
+    main()

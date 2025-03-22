@@ -116,3 +116,4 @@ sdkconfig.old
 *.exe
 *.*build
 *.dist
+config.ini

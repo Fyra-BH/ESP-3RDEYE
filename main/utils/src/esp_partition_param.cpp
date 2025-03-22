@@ -29,11 +29,13 @@ EspPartitionParam::EspPartitionParam(const std::string &partitionName) {
             continue;
         }
         size_t pos = line.find('=');
-        line.erase(0, line.find_first_not_of(" \t\r\n"));
-        line.erase(line.find_last_not_of(" \t\r\n") + 1);
         if (pos != std::string::npos) {
             std::string key = line.substr(0, pos);
             std::string value = line.substr(pos + 1);
+            key.erase(0, key.find_first_not_of(" \t\r\n"));
+            key.erase(key.find_last_not_of(" \t\r\n") + 1);
+            value.erase(0, value.find_first_not_of(" \t\r\n"));
+            value.erase(value.find_last_not_of(" \t\r\n") + 1);
             ESP_LOGI("EspPartitionParam", "key: %s, value: %s", key.c_str(), value.c_str());
             params[key] = value;
         }
